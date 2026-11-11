@@ -145,7 +145,7 @@ try {
   if(toolSlug) {
    const landing = landingRoutes.includes(toolSlug)
    const entryName = toolSlug === 'app' ? 'entry' : 'tool'
-   assert.equal((html.match(/<script[^>]+src=/g)||[]).length,1,'工具页只能有一个入口脚本')
+   assert.equal((html.match(/<script[^>]+src=/g)||[]).length,2,'工具页只加载公共推广脚本与一个工具入口')
    assert(html.includes('src="/app/' + entryName + '.js"'),'入口脚本不对：' + route)
    assert(html.includes('id="app"'),'缺少工具挂载点：' + route)
    assert(html.includes('<noscript>'),'缺少 noscript 兜底：' + route)
@@ -158,12 +158,13 @@ try {
     // 带工具的内容页仍是文章：正文与工具并存，两种类型都要有。
     assert(html.includes('"@type":"Article"'),'带工具的内容页应保留 Article：' + route)
    }
-  } else assert.equal((html.match(/<script[^>]+src=/g)||[]).length,0,'门户非生产页面不应加载统计脚本')
+  } else assert.equal((html.match(/<script[^>]+src=/g)||[]).length,1,'门户非生产页面只加载公共推广脚本')
   for(const m of html.matchAll(/(?:href|src)="([^"#]+)(?:#[^"]*)?"/g)){
    const href=m[1]
    if(!href.startsWith('/'))continue
    if(href === '/app/entry.js' || href === '/app/tool.js')continue
-   const target=path.join(out,href.endsWith('/')?href+'index.html':href)
+   const pathname=new URL(href,'https://seo-check.test').pathname
+   const target=path.join(out,pathname.endsWith('/')?pathname+'index.html':pathname)
    assert(fs.existsSync(target),'损坏的内链/资源：'+href)
   }
   for(const m of html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g)){

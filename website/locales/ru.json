@@ -309,5 +309,11 @@
   "Does saving a Facebook video notify the author?": "Узнает ли автор, что я сохранил видео из Facebook?",
   "No. The server reads a public page without involving your account, and nothing is recorded on the post. It does not add engagement to the post either.": "Нет. Сервер читает публичную страницу, не используя ваш аккаунт, и в посте ничего не фиксируется. Показатели взаимодействия тоже не растут.",
   "Can I save a video from a group?": "Можно ли сохранить видео из группы?",
-  "Only posts in public groups that are visible without signing in. Private group links are invisible to public access. Where sign-in is required, use the desktop app and configure it on your own device.": "Только посты публичных групп, видимые без входа. Ссылки закрытых групп для публичного доступа невидимы. Где нужен вход, используйте настольное приложение и настройте его у себя."
+  "Only posts in public groups that are visible without signing in. Private group links are invisible to public access. Where sign-in is required, use the desktop app and configure it on your own device.": "Только посты публичных групп, видимые без входа. Ссылки закрытых групп для публичного доступа невидимы. Где нужен вход, используйте настольное приложение и настройте его у себя.",
+  "Carousel": "Карусель",
+  "Turn ideas into video with {model}": "Воплотите идеи в видео с {model}",
+  "Video generation API · Nbility AI Gateway": "API генерации видео · Nbility AI Gateway",
+  "One gateway. More AI possibilities.": "Единый доступ к разным моделям ИИ.",
+  "Explore APIs": "Обзор API",
+  "AI model recommendations": "Рекомендации моделей ИИ"
 }

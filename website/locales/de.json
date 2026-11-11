@@ -309,5 +309,11 @@
   "Does saving a Facebook video notify the author?": "Wird der Autor benachrichtigt, wenn ich ein Facebook-Video speichere?",
   "No. The server reads a public page without involving your account, and nothing is recorded on the post. It does not add engagement to the post either.": "Nein. Der Server liest eine öffentliche Seite, ohne Ihr Konto zu nutzen, und am Beitrag wird nichts vermerkt. Er erhöht auch nicht die Interaktionen des Beitrags.",
   "Can I save a video from a group?": "Kann ich ein Video aus einer Gruppe speichern?",
-  "Only posts in public groups that are visible without signing in. Private group links are invisible to public access. Where sign-in is required, use the desktop app and configure it on your own device.": "Nur Beiträge in öffentlichen Gruppen, die ohne Anmeldung sichtbar sind. Links aus privaten Gruppen sind für öffentlichen Zugriff unsichtbar. Wo eine Anmeldung nötig ist, nutzen Sie die Desktop-App und richten sie auf Ihrem Gerät ein."
+  "Only posts in public groups that are visible without signing in. Private group links are invisible to public access. Where sign-in is required, use the desktop app and configure it on your own device.": "Nur Beiträge in öffentlichen Gruppen, die ohne Anmeldung sichtbar sind. Links aus privaten Gruppen sind für öffentlichen Zugriff unsichtbar. Wo eine Anmeldung nötig ist, nutzen Sie die Desktop-App und richten sie auf Ihrem Gerät ein.",
+  "Carousel": "Karussell",
+  "Turn ideas into video with {model}": "Mit {model} werden Ideen zu Videos",
+  "Video generation API · Nbility AI Gateway": "Videogenerierungs-API · Nbility AI Gateway",
+  "One gateway. More AI possibilities.": "Ein Zugang. Mehr Möglichkeiten mit KI.",
+  "Explore APIs": "APIs entdecken",
+  "AI model recommendations": "KI-Modellempfehlungen"
 }

@@ -309,5 +309,11 @@
   "Does saving a Facebook video notify the author?": "Facebook の動画を保存すると投稿者に通知されますか？",
   "No. The server reads a public page without involving your account, and nothing is recorded on the post. It does not add engagement to the post either.": "いいえ。サーバーはあなたのアカウントを使わずに公開ページを読むだけで、投稿には何も記録されません。投稿のエンゲージメントが増えることもありません。",
   "Can I save a video from a group?": "グループの動画は保存できますか？",
-  "Only posts in public groups that are visible without signing in. Private group links are invisible to public access. Where sign-in is required, use the desktop app and configure it on your own device.": "ログインなしで見られる公開グループの投稿のみです。非公開グループのリンクは公開アクセスからは見えません。ログインが必要な場合はデスクトップ版を使い、ご自身の端末で設定してください。"
+  "Only posts in public groups that are visible without signing in. Private group links are invisible to public access. Where sign-in is required, use the desktop app and configure it on your own device.": "ログインなしで見られる公開グループの投稿のみです。非公開グループのリンクは公開アクセスからは見えません。ログインが必要な場合はデスクトップ版を使い、ご自身の端末で設定してください。",
+  "Carousel": "カルーセル",
+  "Turn ideas into video with {model}": "{model} でアイデアを動画に",
+  "Video generation API · Nbility AI Gateway": "動画生成 API · Nbility AI ゲートウェイ",
+  "One gateway. More AI possibilities.": "ひとつの窓口で、多彩な AI モデルへ。",
+  "Explore APIs": "API を見る",
+  "AI model recommendations": "AI モデルのおすすめ"
 }

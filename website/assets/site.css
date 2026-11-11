@@ -8,6 +8,30 @@
 
 .brand-icon{display:block;background:transparent;border-radius:0;width:34px;height:34px}.brand{letter-spacing:-.8px}@media(max-width:760px){.brand-icon{width:28px;height:28px}.brand{font-size:21px}}
 
+/* 推广条占据正常文档流，首页导航仍覆盖原来的主视觉。 */
+.promotion{position:relative;z-index:11;background:var(--ink);color:var(--paper)}
+.promotion-inner{display:flex;align-items:center;gap:20px;max-width:1600px;margin:0 auto;padding:0 4.5%}
+.promotion-viewport{display:grid;align-self:stretch;flex:1;min-width:0;overflow:hidden}
+.promotion-track{display:grid;min-width:0}
+.promotion-slide{grid-area:1/1;display:flex;align-items:center;justify-content:space-between;gap:20px;min-width:0;min-height:46px;padding:6px 3px;transition:transform .45s ease,opacity .3s ease,visibility .45s}
+.promotion-slide[aria-hidden="true"]{visibility:hidden;opacity:0;transform:translateY(-80%);pointer-events:none}
+.promotion-copy{display:flex;align-items:baseline;gap:16px;min-width:0}
+.promotion-title{display:block;flex-shrink:0;font-size:13px;font-weight:600;line-height:1.5;letter-spacing:-.015em;white-space:nowrap}
+.promotion-accent{color:var(--orange);white-space:nowrap}
+.promotion-description{display:block;font-size:11px;line-height:1.5;white-space:nowrap;color:color-mix(in srgb,var(--paper) 68%,var(--ink))}
+.promotion-cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex-shrink:0;min-height:28px;padding:5px 10px;border:1px solid color-mix(in srgb,var(--paper) 35%,transparent);border-radius:5px;font-size:11px;font-weight:600;line-height:1.4;transition:color .2s,border-color .2s}
+.promotion-slide:hover .promotion-cta{color:var(--orange);border-color:var(--orange)}
+.promotion-slide:focus-visible{outline:2px solid var(--orange);outline-offset:-3px;border-radius:5px}
+.homepage .header{position:relative;margin-bottom:-88px;top:auto}
+@media(max-width:1100px){.promotion-description{display:none}}
+@media(max-width:760px){
+ .promotion-inner{padding:0 5%}
+ .promotion-slide{min-height:62px;padding:10px 3px;gap:12px}.promotion-title{flex-shrink:1;font-size:13px;line-height:1.5;white-space:normal}
+ .promotion-cta{gap:7px;padding:6px 8px;font-size:10px;min-height:32px}.promotion-cta svg{width:15px;height:15px}
+ .homepage .header{margin-bottom:-76px}
+}
+@media(max-width:380px){.promotion-inner{padding:0 4.5%}.promotion-slide{gap:10px}.promotion-title{font-size:12px}.promotion-cta{gap:5px;padding:5px 6px}}
+
 /* 视频收进本地文件夹：左侧留白承载文案，右侧保留素材色彩。 */
 .homepage .header{color:#243239;border-bottom-color:#28353a19;background:color-mix(in srgb,var(--paper) 90%,transparent)}
 .homepage .nav-download{border-color:#24323944}.homepage .nav-download:hover{background:#2432390a}

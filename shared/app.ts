@@ -13,6 +13,8 @@
  * 由 `pnpm lint:ipc` 做静态一致性校验。
  */
 
+import promotionLinks from './promotion-links.json'
+
 export const APP = {
   name: 'Keep Video',
   owner: 'oiov',
@@ -47,3 +49,6 @@ export const DEVELOPER_LOGINS: readonly string[] = [APP.owner]
 
 export const WEBSITE_URL = 'https://keep.video'
 export const SUPPORT_EMAIL = 'support@keep.video'
+
+/** 官网生成器与应用共用同一份推广链接，保留完整的推荐参数。 */
+export const NBILITY_PROMOTION_URL = promotionLinks.nbility
