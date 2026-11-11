@@ -32,9 +32,15 @@ function session(req: http.IncomingMessage) {
   return token && state.session(token) ? token : undefined
 }
 const server = http.createServer(async (req, res) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff')
-  const url = new URL(req.url || '/', config.origin)
   try {
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    let url: URL
+    try {
+      const target = req.url || ''
+      // 仅接受站内路径，避免双斜杠、反斜杠等被 URL 解析成外部地址。
+      if (!target.startsWith('/') || target.startsWith('//') || /[\\#\u0000-\u0020\u007f]/.test(target)) throw new Error('请求路径无效')
+      url = new URL(target, config.origin)
+    } catch { res.writeHead(400).end(); return }
     if (await see.handle(req, res, url)) return
     if (!['GET', 'HEAD'].includes(req.method || '')) { res.writeHead(405).end(); return }
     if (url.pathname === '/healthz') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ ok: true, version })); return }
@@ -78,7 +84,7 @@ const server = http.createServer(async (req, res) => {
       catch { res.writeHead(503).end(); return }
       res.setHeader('Set-Cookie', 'keep_session=' + token + '; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000' + (config.origin.startsWith('https:') ? '; Secure' : ''))
     }
-    serveStatic(req, res, process.env.WEBSITE_DIST || path.join(root, 'website/dist'), process.env.DOWNVID_WEB_DIST || path.join(root, 'docker/dist-web'))
+    serveStatic(req, res, url, process.env.WEBSITE_DIST || path.join(root, 'website/dist'), process.env.DOWNVID_WEB_DIST || path.join(root, 'docker/dist-web'))
   } catch { if (!res.headersSent) res.writeHead(500); res.end() }
 })
 

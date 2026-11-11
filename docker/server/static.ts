@@ -4,8 +4,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 
 const mime: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.xml': 'application/xml', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ico': 'image/x-icon' }
 
-export function serveStatic(req: IncomingMessage, res: ServerResponse, website: string, app: string) {
-  const url = new URL(req.url || '/', 'http://localhost')
+export function serveStatic(req: IncomingMessage, res: ServerResponse, url: URL, website: string, app: string) {
   const redirect = (location: string) => { res.writeHead(308, { Location: location + url.search }); res.end() }
   if (url.pathname === '/zh-cn' || url.pathname.startsWith('/zh-cn/')) return redirect('/zh' + url.pathname.slice(6) + (url.pathname === '/zh-cn' ? '/' : ''))
   if (url.pathname === '/en' || url.pathname.startsWith('/en/')) return redirect(url.pathname.slice(3) || '/')

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import http from 'node:http'
 import { spawn } from 'node:child_process'
 import { once, EventEmitter } from 'node:events'
 import { WebSocket } from 'ws'
@@ -39,6 +40,19 @@ const child = spawn(process.execPath, ['--import', 'tsx', 'docker/server/index.t
 let output = ''; child.stdout.on('data', d => output += d); child.stderr.on('data', d => output += d)
 const sockets = []
 const request = (route, token, headers = {}) => fetch(origin + route, { headers: { ...(token ? { Cookie: 'keep_session=' + token } : {}), ...headers }, redirect: 'manual', signal: AbortSignal.timeout(5000) })
+// fetch 会规范化 URL；用原始请求目标复现公网请求，避免测试绕过出错入口。
+function rawRequest(target, method = 'GET') {
+  return new Promise((resolve, reject) => {
+    const req = http.request(origin, { path: target, method, agent: false }, res => {
+      res.resume()
+      res.once('end', () => resolve(res))
+      res.once('error', reject)
+    })
+    req.setTimeout(5000, () => req.destroy(new Error('原始请求超时')))
+    req.once('error', reject)
+    req.end()
+  })
+}
 try {
   let ready = false
   for (let i = 0; i < 100; i++) {
@@ -111,10 +125,27 @@ try {
   const denied = new WebSocket(origin.replace('http', 'ws') + '/api/ws', { headers: { Origin: 'https://invalid.example', Cookie: 'keep_session=' + owner } }); sockets.push(denied)
   const response = await new Promise(resolve => { denied.on('unexpected-response', (_, res) => { resolve(res.statusCode); denied.terminate() }); denied.on('error', () => {}) })
   assert.equal(response, 403)
+  for (const target of ['//?ref=hackstack', '//', '///?ref=test', '//example.com/app/', '/\\example.com/app/', '/app\\entry.js', '/app/#fragment', 'http://example.com/app/']) {
+    for (const method of ['GET', 'HEAD']) {
+      let response
+      try { response = await rawRequest(target, method) }
+      catch (error) { throw new Error('非法请求未正常响应：' + JSON.stringify(target) + '\n' + output, { cause: error }) }
+      assert.equal(response.statusCode, 400, '非法请求应返回 400：' + JSON.stringify(target))
+      assert.equal(response.headers.location, undefined, '非法路径不得产生跳转')
+      assert.equal(response.headers['set-cookie'], undefined, '非法路径不得创建会话')
+      assert.equal((await request('/healthz')).status, 200, '非法请求后服务必须继续存活')
+    }
+  }
+  assert.equal((await rawRequest('/?ref=hackstack')).statusCode, 200, '普通查询参数仍可访问')
+  assert.equal((await request('/app/', owner)).status, 200, '正常页面仍可访问')
+  assert.equal((await invoke('history:get')).length, 1, '非法请求不能断开现有业务连接')
   console.log('单站点、会话、文件交付和 RPC 回归通过')
 } finally {
   for (const ws of sockets) ws.terminate()
-  child.kill(); await once(child, 'exit').catch(() => {})
+  if (child.exitCode === null && child.signalCode === null) {
+    const exited = once(child, 'exit')
+    child.kill(); await exited.catch(() => {})
+  }
   const events = eventsIn(path.join(data, 'analytics'))
   assert.equal(events.filter(event => event.name === 'tool_view').length, 1, '重复浏览器事件只记录一次')
   const delivery = events.filter(event => event.name === 'file_delivery_finished')
