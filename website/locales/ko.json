@@ -315,5 +315,6 @@
   "Explore APIs": "API 살펴보기",
   "AI model recommendations": "AI 모델 추천",
   "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "서버가 기기에 저장할 임시 파일을 준비합니다. 익명 작업은 현재 브라우저 세션에 속합니다. 로그인 후 현재 게스트 작업을 연결하고 유효한 결과를 다른 기기에서 확인할 수 있습니다. 로그인해도 보관 기간은 늘어나지 않습니다.",
-  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "설치나 가입 없이 시작하세요. 선택 사항인 계정으로 연결한 작업과 사용량을 관리할 수 있으며 API는 베타 승인이 필요합니다. 공개 링크만 지원하며 계정이나 구독이 제한된 콘텐츠를 해제하지 않습니다. 개인 쿠키는 데스크톱 앱에서 사용하세요."
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "설치나 가입 없이 시작하세요. 선택 사항인 계정으로 연결한 작업과 사용량을 관리할 수 있으며 API는 베타 승인이 필요합니다. 공개 링크만 지원하며 계정이나 구독이 제한된 콘텐츠를 해제하지 않습니다. 개인 쿠키는 데스크톱 앱에서 사용하세요.",
+  "Paste a video link": "동영상 링크 붙여넣기"
 }

@@ -315,5 +315,6 @@
   "Explore APIs": "API を見る",
   "AI model recommendations": "AI モデルのおすすめ",
   "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "サーバーで一時ファイルを作成します。匿名タスクはこのブラウザーのセッションに属します。ログイン後に現在のゲストタスクを引き継ぎ、有効期限内の結果を別の端末で確認できます。保存期間は延長されません。",
-  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "インストールや登録なしで開始できます。任意のアカウントで引き継いだタスクと使用量を管理でき、API はベータ参加承認が必要です。公開リンクのみ対応し、アカウントや有料プランで制限コンテンツは解除されません。独自の Cookie はデスクトップ版で使用してください。"
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "インストールや登録なしで開始できます。任意のアカウントで引き継いだタスクと使用量を管理でき、API はベータ参加承認が必要です。公開リンクのみ対応し、アカウントや有料プランで制限コンテンツは解除されません。独自の Cookie はデスクトップ版で使用してください。",
+  "Paste a video link": "動画のリンクを貼り付け"
 }

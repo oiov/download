@@ -1,17 +1,22 @@
 [
   {
-    "name": "hero-video-download",
-    "size": "2048x1152",
-    "prompt": "生成真正的 16:9 横版网站首屏背景，不是方图加边。主题是把在线视频下载并保存在本地。暖白色无缝摄影棚，左侧一半保持安静、低对比的暖白留白，供网页叠加标题和按钮。右侧是一条连续的电影胶片，自上方优雅弯曲，真实地落入下方一个敞开的橙色文件夹。胶片有细致的深色边缘和齿孔，承载夕阳海浪、山峰、演唱会画面，其中一帧带简洁播放三角。文件夹有清晰的标签页轮廓、精致哑光橙色质感，正面浅压印向下箭头与托盘组成的下载符号。主体集中在横向 56% 至 94% 区域，保留呼吸空间，用柔和接触阴影和橙色反光自然融入背景。高级编辑式产品摄影，真实材质、温暖日光、有纵深的一体化构图，不是悬浮卡片堆叠或玩具图标。不要文字、字母、标志、水印、界面、进度条、电脑、玻璃画框、多余文件夹、紫色或黑色背景。"
+    "name": "hero-keep",
+    "size": "1536x1536",
+    "prompt": "Premium editorial 3D still life for a video downloader website hero, square composition. A single cinematic video frame (a warm sunset over ocean cliffs) rendered as a thin glass slab, gently separating into three stacked parallel layers like an exploded view: the photo layer, a translucent layer with rounded orange (#FB7A42) audio waveform bars, and a clear layer with two soft white subtitle caption bars. The layers float at a slight angle above a matte white plinth. Seamless pure white to very light warm gray studio background, soft daylight, delicate shadows, subtle orange glints on glass edges, calm minimal composition with generous whitespace. Realistic high-end product render. No text, no letters, no logos, no watermark, no UI, no devices, no dark background, no neon, no purple."
   },
   {
-    "name": "video-frame-light",
+    "name": "card-video",
     "size": "1536x1024",
-    "prompt": "Minimalist high-end editorial 3D still life on warm ivory seamless background. A thin brushed aluminum rectangular frame contains a luminous translucent peach glass play triangle, floating above a matte cream pedestal. Soft daylight, delicate shadows, tactile premium materials, spacious restrained design, calm warm white and apricot palette with subtle cool silver accent. Not a UI screenshot, no text no letters no logos no watermark."
+    "prompt": "Premium editorial 3D still life, landscape composition, matching a minimal white website. A single thin glass slab shaped like a video frame stands slightly angled on a seamless very light warm gray studio surface. The glass shows a warm sunset over ocean cliffs, and along its lower edge a slim rounded orange (#FB7A42) progress line with a small white knob. Soft daylight from the upper left, delicate long shadow, subtle orange glints on the glass edges, generous whitespace around the subject, centered. Realistic high-end product render, calm and refined. No text, no letters, no numbers, no logos, no watermark, no icons, no devices, no hands, no dark background, no neon, no purple."
   },
   {
-    "name": "audio-frame-light",
+    "name": "card-audio",
     "size": "1536x1024",
-    "prompt": "Minimalist luxury editorial product photograph on warm ivory seamless background. Sculptural off-white over-ear headphones on a cream stone plinth, a delicate translucent apricot glass disc behind them, brushed silver details, beautiful soft daylight and gentle long shadows, spacious airy composition, highly tactile believable materials, refined contemporary art direction. No black background, no neon, no text no letters no logos no watermark."
+    "prompt": "Premium editorial 3D still life, landscape composition, matching a minimal white website. Sculptural matte off-white over-ear headphones resting on a low matte white plinth. Behind them stands a thin translucent frosted glass slab with rounded orange (#FB7A42) audio waveform bars glowing softly. Seamless very light warm gray studio background, soft daylight from the upper left, delicate shadows, subtle orange reflections, generous whitespace, centered subject. Realistic high-end product render, calm and refined. No text, no letters, no numbers, no logos, no watermark, no cables, no devices, no hands, no dark background, no neon, no purple."
+  },
+  {
+    "name": "card-subtitles",
+    "size": "1536x1024",
+    "prompt": "Premium editorial 3D still life, landscape composition, matching a minimal white website. Three thin frosted glass caption slabs float in a gentle staggered stack at a slight angle, each carrying two or three soft rounded white caption bars; the front slab has one caption bar highlighted in warm orange (#FB7A42). Seamless very light warm gray studio background, soft daylight from the upper left, delicate shadows on the floor, subtle orange glints on glass edges, generous whitespace, centered. Realistic high-end product render, calm and refined. Caption bars are abstract shapes only. No text, no letters, no numbers, no logos, no watermark, no devices, no hands, no dark background, no neon, no purple."
   }
 ]

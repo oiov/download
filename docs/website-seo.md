@@ -31,13 +31,14 @@
 
 已复用 nb-gen 的 scripts/nbility-image.py 工作流，当前项目入口是 scripts/generate-website-art.py。通过 NBILITY_IMAGE_API_KEY 读取凭据，不写入代码和素材；图片下载不携带 API 密钥。website/art-direction.json 保存 Keep Video 专属提示词。
 
-2026-10-15 生成浅色画框与编辑式静物素材，搭配暖白、杏橙和银色，压缩为本地 WebP。2026-10-21 首页改用“视频胶片收进橙色文件夹”的横版构图，直接表达下载与本地保存；采用提供的 1672 × 940 原图，等比例压缩，不拉伸方图。首屏使用独立资源名，避免旧图缓存影响替换。视频与音频功能卡片仍保留原有静物素材。
+2026-11-14 落地页重新设计：白底双栏首屏（左侧标题与链接输入框，右侧方形主视觉），首屏图改为“视频帧分层为画面、音轨、字幕”的玻璃静物，三张格式卡片按同一风格重新生成。首屏图把白点提到 245，使背景与页面纯白衔接，再由 CSS 径向遮罩收边。平台标志来自 Simple Icons（CC0），保存在 website/assets/platforms。
 
 | 文件 | 用途 |
 | --- | --- |
-| hero-video-download.webp | 视频胶片与橙色下载文件夹首屏 |
-| video-frame-light.webp | 画框与播放符号 |
-| audio-frame-light.webp | 浅色耳机静物 |
+| hero-keep.webp | 首屏主视觉：视频帧分层为画面、音轨与字幕 |
+| card-video.webp | 视频格式卡片，也用于首页浏览器样机缩略图 |
+| card-audio.webp | 音频格式卡片 |
+| card-subtitles.webp | 字幕格式卡片 |
 
 生成提示词保存在 website/art-direction.json。凭据与任务结果不提交。三款 Logo 是独立矢量设计，保存在 website/assets/brand，当前采用 frame-play.svg，另外两款为 folded-film.svg 与 keep-mark.svg；favicon 与导航标识保持一致。
 

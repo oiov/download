@@ -194,6 +194,17 @@ footer { max-width: 1320px; padding: 20px 32px 32px; border-top: 1px solid var(-
   footer { padding: 20px; }
 }
 @media (max-width: 560px) { .usage-grid, .stat-grid { grid-template-columns: 1fr; } }
+/* 与官网 site.css 同一组视觉语言：白底、Inter 字栈、暖橙强调与胶囊按钮。 */
+:root { --paper: #ffffff; --soft: #f6f4f1; --ink: #14191c; --muted: #62696e; --line: #e6e3df; --track: #efece8; --focus: #b3471b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; -webkit-font-smoothing: antialiased; }
+body { background: var(--paper); }
+h1 { letter-spacing: -.035em; }
+.button, button:not(.menu-panel button), .topbar .account-link { border-radius: 999px; }
+.button, button { padding-inline: 18px; }
+.small { padding-inline: 12px; }
+.rail a[aria-current=page] { background: var(--soft); box-shadow: none; }
+.card { border-radius: 16px; }
+.card table th, .menu-panel a[aria-current], .menu-panel a:hover, .menu-panel button:hover { background: var(--soft); }
 `
 type PageOptions = { publicLogin?: boolean; dashboard?: boolean; administrator?: boolean; user?: { name: string; email: string } }
 export function page(title: AccountMessage, content: string, language = 'en', admin = false, current = '', options: PageOptions = {}) {

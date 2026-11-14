@@ -72,6 +72,7 @@ import { useDepsStore, readMissingKinds, stripDepMarkers } from '../stores/deps'
 import { readSettings } from '../stores/settings'
 import { useErrorModal } from '../composables/useErrorModal'
 import { classifyParseError, parseDiagnostic, PARSE_MESSAGES } from '../../shared/parse-error'
+import { readWebPrefill } from '../../shared/web-prefill'
 import type { ParseErrorKind } from '../../shared/parse-error'
 
 const store = useDownloadStore()
@@ -249,6 +250,13 @@ onMounted(async () => {
       }
     })
     try { store.syncWebTasks(await window.electronAPI.history.get()) } catch { disconnected.value = true }
+    // 官网首屏表单带来的链接：先从地址栏移除，同站提交才自动解析
+    const prefill = readWebPrefill(location.href, document.referrer)
+    if (prefill) {
+      history.replaceState(history.state, '', prefill.cleanUrl)
+      store.url = prefill.url
+      if (prefill.autoParse) void parseVideo()
+    }
   }
   await loadDownloadDir()
   // 应用代理设置

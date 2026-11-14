@@ -477,6 +477,7 @@ under `## [Unreleased]`. When releasing, rewrite it to `## [x.y.z] - <date>` and
 
 - 在线页默认英文 /app/，中文 /zh/app/，其余语言与 shared/site-locales.json 一致；旧 /zh-cn/ 永久跳转到 /zh/。公开说明与表单共用导航，HTML 可索引，私有 /api/ 保持 noindex。浏览器额外七语词条位于 src/i18n/web-locales.json，账户页面七语词条位于 src/i18n/account-locales.json（管理后台专用词条回退英文），新增键须同步并通过 lint:i18n。
 
+- 官网首屏表单以 GET 跳转 /app/?url=…，由 shared/web-prefill.ts 校验 http(s) 与长度后预填并清理地址栏；仅同站来源自动解析，外站构造的链接只预填，避免替访客消耗解析额度。门户页本身不得执行解析。
 
 - Web 队列以真实下载调用收尾为释放槽位和删除目录的依据，不能只看 paused/error 状态。停止服务必须等待下载、上传及正在解析的请求。
 - 容器使用清单生成器提供的 `YtDlpTag` 与 `YtDlpZipappSHA256`，下载校验后才能执行；保留非 root、发行版 ffmpeg 和 local/R2 存储，不引入上游品牌或架构迁移。

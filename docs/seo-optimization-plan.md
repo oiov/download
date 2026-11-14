@@ -101,7 +101,7 @@ Agent 的核心建议是「把工具搬进 `/youtube-video-downloader/`，别跳
 
 **第一个使用方是 `/youtube-video-downloader/`**：`youtube video downloader online` 的 SERP 十个位置全是独立工具站、没有平台固定位，纯内容页打不进去。
 
-**首页也放工具**不需要走这套：首页 `app-section` 里现在是一张 `online-preview.jpg` 工具截图，原地换成真工具即可，版式与 H1 都不动。代价是首页休闲流量会消耗 `docker/server/quota.ts` 的解析额度，要么接受并观察，要么把它做成只有输入框、解析前导到 `/app/`。
+**首页也放工具**已按“只有输入框、解析前导到 `/app/`”落地（2026-11-14）：首屏表单以 GET 跳转 `/app/?url=…`，由 `shared/web-prefill.ts` 校验后预填并清理地址栏，首页本身不消耗 `docker/server/quota.ts` 的解析额度；`app-section` 改为纯 HTML 的浏览器样机示意。
 
 ### P1｜修内容重复与内链孤岛（2–3 天）
 
