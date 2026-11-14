@@ -239,6 +239,12 @@ async function loadDownloadDir() {
 
 onMounted(async () => {
   if (isWeb) {
+    // 官网首屏表单带来的链接：挂载时同步预填，不能等 WebSocket 历史同步，否则输入框会空白数秒
+    const prefill = readWebPrefill(location.href, document.referrer)
+    if (prefill) {
+      history.replaceState(history.state, '', prefill.cleanUrl)
+      if (!store.url.trim()) store.url = prefill.url
+    }
     window.addEventListener('keep:connection', connectionChanged)
     unsubscribeHistory = window.electronAPI?.history?.onUpdated(store.syncWebTasks)
     unsubscribeProgress = window.electronAPI?.onDownloadProgress(data => {
@@ -249,14 +255,9 @@ onMounted(async () => {
         task.speed = data.speed; task.eta = data.eta
       }
     })
+    // 同站提交才自动解析；请求本身会等待连接，无需排在历史同步之后
+    if (prefill?.autoParse && store.url === prefill.url) void parseVideo()
     try { store.syncWebTasks(await window.electronAPI.history.get()) } catch { disconnected.value = true }
-    // 官网首屏表单带来的链接：先从地址栏移除，同站提交才自动解析
-    const prefill = readWebPrefill(location.href, document.referrer)
-    if (prefill) {
-      history.replaceState(history.state, '', prefill.cleanUrl)
-      store.url = prefill.url
-      if (prefill.autoParse) void parseVideo()
-    }
   }
   await loadDownloadDir()
   // 应用代理设置
