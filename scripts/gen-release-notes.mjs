@@ -69,6 +69,34 @@ const linuxArmAppImage = find(new RegExp(`^KeepVideo-arm64-Linux-${version.repla
 const linuxDeb = find(new RegExp(`^KeepVideo-amd64-Linux-${version.replace(/\./g, '\\.')}\\.deb$`))
 const linuxRpm = find(new RegExp(`^KeepVideo-x86_64-Linux-${version.replace(/\./g, '\\.')}\\.rpm$`))
 
+// 新版桌面客户端（Go + Wails，app/）：与 Electron 版并行发布，老用户仍走原更新通道
+const v = version.replace(/\./g, '\\.')
+const desktopMacDmg = find(new RegExp(`^KeepVideo-Desktop-mac-universal-${v}\\.dmg$`))
+const desktopMacZip = find(new RegExp(`^KeepVideo-Desktop-mac-universal-${v}\\.zip$`))
+const desktopWinSetup = find(new RegExp(`^KeepVideo-Desktop-windows-x64-${v}-installer\\.exe$`))
+const desktopWinZip = find(new RegExp(`^KeepVideo-Desktop-windows-x64-${v}\\.zip$`))
+const desktopLinuxDeb = find(new RegExp(`^KeepVideo-Desktop-linux-x64-${v}\\.deb$`))
+const desktopLinuxTar = find(new RegExp(`^KeepVideo-Desktop-linux-x64-${v}\\.tar\\.gz$`))
+const desktopRows = []
+const pushDesktop = (platform, arch, label, entry) => {
+  if (entry) desktopRows.push(`| ${platform} | ${arch} | [${label}](${entry.url}) |`)
+}
+pushDesktop('macOS', 'Universal（Apple 芯片 + Intel）', '`.dmg`', desktopMacDmg)
+pushDesktop('macOS', 'Universal（Apple 芯片 + Intel）', '`.zip`', desktopMacZip)
+pushDesktop('Windows', 'x64', '安装版 `.exe`', desktopWinSetup)
+pushDesktop('Windows', 'x64', '便携版 `.zip`', desktopWinZip)
+pushDesktop('Linux', 'x64', '`.deb`', desktopLinuxDeb)
+pushDesktop('Linux', 'x64', '`.tar.gz`', desktopLinuxTar)
+const desktopSection = desktopRows.length ? `
+### 🚀 新版桌面客户端（Go + Wails）
+
+单文件更轻量，新增下载热力图与下载限速；下载历史自动沿用。目前需手动下载安装，之后由新客户端自行更新。
+
+| 平台 | 架构 | 安装包 |
+|------|------|--------|
+${desktopRows.join('\n')}
+` : ''
+
 // 首选下载：每个平台一个，避免选择困难
 const primaryBadges = [
   badge('Windows', '下载 x64 安装版', '0078D6', winSetup?.url, 'windows'),
@@ -142,7 +170,7 @@ ${primaryBadges.join('\n')}
 | 平台 | 架构 | 安装包 |
 |------|------|--------|
 ${rows.join('\n')}
-
+${desktopSection}
 > 运行依赖 **yt-dlp / ffmpeg 不随安装包分发**：启动后会自动识别机器上已安装的版本并复用，
 > 识别不到时在「设置 → 运行依赖」里一键下载即可，无需提前手动安装。
 

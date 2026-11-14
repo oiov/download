@@ -30,6 +30,7 @@ pnpm deps:manifest:check    # is the dependency manifest behind upstream?
 pnpm build                  # vue-tsc && vite build && electron-builder (current platform)
 pnpm build:mac:arm64        # also :mac:x64 :win :linux:x64 :linux:arm64
 cd backend && gofmt -l . && go vet ./... && go test ./...
+(cd app && go vet ./... && go test ./...) && pnpm app:check && pnpm app:test   # new desktop client, see app/README.md
 ```
 
 Requires **Node ≥ 22.13, pnpm ≥ 8, Go ≥ 1.24**. yt-dlp / ffmpeg need *not* be preinstalled.
@@ -66,6 +67,8 @@ Tests are split into three per-platform workflows (`.github/workflows/ci-linux.y
 | `integration` | download integration / acceleration benchmark / parse integration |
 | `native-runtime` | Windows only: native exe runtime-deps regression |
 | `package` / `packaging` | build / pack to a directory / artifact contents / manifest & release-notes script self-checks |
+| `app` | new desktop client: gofmt / vet / test (core and sidecar) / CHANGELOG copy / svelte-check / Vitest |
+| `app-package` | new desktop client single-binary build and artifact check (gated by desktop-changes) |
 
 For routine pushes / PRs, `.github/workflows/desktop-changes.yml` calls
 `scripts/desktop-ci.mjs` to gate desktop packaging. Website-only, Docker-server-only or docs-only
@@ -117,6 +120,7 @@ and a **Go sidecar** (detects and installs yt-dlp / ffmpeg). They talk over IPC 
 | `electron/` | main process | `dist-electron/` |
 | `src/` | Vue 3 renderer (`<script setup>`, Tailwind v4, Pinia) | `dist/` |
 | `shared/app.ts` | **single source** of repo coordinates and external links | imported by all three |
+| `app/` | new desktop client (Go + Wails + Svelte 5) | `app/build/bin/` |
 | `tests/` | Vitest pure-logic tests | — |
 | `website/` | static website (Node generation, separate language URLs) | — |
 | `scripts/` | manifest generation, sidecar build, IPC / website lint, release notes | — |
@@ -495,3 +499,11 @@ under `## [Unreleased]`. When releasing, rewrite it to `## [x.y.z] - <date>` and
 - Stripe Checkout／Portal 仅在服务端配置完整时启用；签名通知防重放并重新读取上游当前订阅，支付返回页不能直接授予权益。凭据只留服务端，MCP 本轮不实施。迁移、额度、权限与支付配置见 `docs/accounts-and-billing.md`；`scripts/test-web-accounts.mjs` 和服务端／Web 类型检查并入 pnpm test:web，沿用三平台 integration job，新增安全分支须有变异反证。
 
 - 按用户授权新增 `/admin/downloads` 全站下载历史与详情，允许管理员查看标题和清洗后的公开来源链接；不展示凭据、签名查询串、服务器路径或原始错误。`download-history.ts` 独立迁移并与任务原子保存，认领同步归属，文件清理不删历史；`DOWNLOAD_HISTORY_RETENTION_DAYS` 默认 90 天。环境变量完整模板和填写说明见 `docker/.env.example` 与 `docs/environment-variables.md`。
+
+## 新版桌面客户端（app/）
+
+- `app/` 是同步自上游的 Go + Wails + Svelte 5 客户端，与 Electron 版并行发布；结构、命令与数据位置见 `app/README.md`。已清理上游标题、Logo、作者、赞助、插件与 Gitee/CNB 更新源，**再次同步上游时不得带回这些内容**。
+- 产物前缀 `KeepVideo-Desktop-` 由 `app/internal/update/migration.go` 的 `WailsAssetPrefix` 与 `app/internal/update/wml.go` 的资产规则共同引用；改名会切断已安装用户的自更新。`release.yml` 的 `build-desktop` 生成这些产物，`release` 额外上传只覆盖它们的 SHA-256 校验清单 checksums.txt。Electron 产物名不变，老用户仍从 `latest*.yml` 更新。
+- 构建只能走 `app/scripts/build.sh`（先编依赖边车 `app/sidecar` 再嵌入）；Go 编译前运行 `app/scripts/prepare-embed-dir.sh`，前端检查前运行 `wails generate module`（`wailsjs/` 不入库）。
+- 根 `CHANGELOG.md` 改动后运行 `node scripts/sync-changelog.mjs`，三平台 `app` job 以 `--check` 校验内置副本；`app-package` job 由 desktop-changes 输出控制。
+- 下载限速 `speedLimit`（KiB/s，0 为不限）：yt-dlp 用 `--limit-rate` 并强制单分片，aria2 用全局限速，直链分段共享 `app/internal/fetch/direct.go` 的令牌桶；与连接数滑块相互独立。热力图计数由 `app/internal/activity` 写入，首次运行用已有历史补齐。

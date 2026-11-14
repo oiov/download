@@ -40,6 +40,7 @@ pnpm lint:website                              # 官网九语言页面 / 内链�
 pnpm lint:docs                                 # AGENTS.md ↔ CLAUDE.md 一致 + 引用路径与数字真实存在
 pnpm deps:manifest:check                       # 依赖清单是否落后上游
 cd backend && gofmt -l . && go vet ./... && go test -shuffle=on ./...   # Go 侧车
+(cd app && go vet ./... && go test ./...) && pnpm app:check && pnpm app:test   # 新版桌面客户端，见 app/README.md
 pnpm build                                     # 端到端：vue-tsc + vite build + electron-builder
 ```
 
@@ -66,6 +67,8 @@ pnpm build                                     # 端到端：vue-tsc + vite buil
 | `integration` | 下载集成回归 / 加速基准 / 解析集成回归 |
 | `native-runtime` | 仅 Windows：原生 exe 运行依赖回归 |
 | `package` / `packaging` | 构建 / 打包到目录 / 产物内容校验 / 清单与 Release 正文脚本自检 |
+| `app` | 新版桌面客户端：gofmt / vet / test（核心与边车）/ CHANGELOG 副本 / svelte-check / Vitest |
+| `app-package` | 新版桌面客户端单文件构建与产物自检（受 desktop-changes 控制） |
 
 日常 push / PR 的桌面打包由 `.github/workflows/desktop-changes.yml` 调用
 `scripts/desktop-ci.mjs` 统一判断；仅改官网、Docker 服务端或文档时跳过三平台的
@@ -119,6 +122,7 @@ Dependabot 已忽略其大版本升级。
 | `electron/` | 主进程 | `dist-electron/` |
 | `src/` | Vue 3 渲染进程（`<script setup>`、Tailwind v4、Pinia） | `dist/` |
 | `shared/app.ts` | 仓库坐标与外部链接的**唯一来源** | 被三方共同引用 |
+| `app/` | 新版桌面客户端（Go + Wails + Svelte 5） | `app/build/bin/` |
 | `tests/` | Vitest 纯逻辑单测 | — |
 | `website/` | 静态官网（Node 生成，九语言独立 URL） | — |
 | `scripts/` | 清单生成、构建边车、IPC / 官网校验、Release 正文 | — |
@@ -504,3 +508,11 @@ CHANGELOG 用 `## [Unreleased]` 段落累积改动。发布时再一次性改成
 - Stripe Checkout／Portal 仅在服务端配置完整时启用；签名通知防重放并重新读取上游当前订阅，支付返回页不能直接授予权益。凭据只留服务端，MCP 本轮不实施。迁移、额度、权限与支付配置见 `docs/accounts-and-billing.md`；`scripts/test-web-accounts.mjs` 和服务端／Web 类型检查并入 pnpm test:web，沿用三平台 integration job，新增安全分支须有变异反证。
 
 - 按用户授权新增 `/admin/downloads` 全站下载历史与详情，允许管理员查看标题和清洗后的公开来源链接；不展示凭据、签名查询串、服务器路径或原始错误。`download-history.ts` 独立迁移并与任务原子保存，认领同步归属，文件清理不删历史；`DOWNLOAD_HISTORY_RETENTION_DAYS` 默认 90 天。环境变量完整模板和填写说明见 `docker/.env.example` 与 `docs/environment-variables.md`。
+
+## 新版桌面客户端（app/）
+
+- `app/` 是同步自上游的 Go + Wails + Svelte 5 客户端，与 Electron 版并行发布；结构、命令与数据位置见 `app/README.md`。已清理上游标题、Logo、作者、赞助、插件与 Gitee/CNB 更新源，**再次同步上游时不得带回这些内容**。
+- 产物前缀 `KeepVideo-Desktop-` 由 `app/internal/update/migration.go` 的 `WailsAssetPrefix` 与 `app/internal/update/wml.go` 的资产规则共同引用；改名会切断已安装用户的自更新。`release.yml` 的 `build-desktop` 生成这些产物，`release` 额外上传只覆盖它们的 SHA-256 校验清单 checksums.txt。Electron 产物名不变，老用户仍从 `latest*.yml` 更新。
+- 构建只能走 `app/scripts/build.sh`（先编依赖边车 `app/sidecar` 再嵌入）；Go 编译前运行 `app/scripts/prepare-embed-dir.sh`，前端检查前运行 `wails generate module`（`wailsjs/` 不入库）。
+- 根 `CHANGELOG.md` 改动后运行 `node scripts/sync-changelog.mjs`，三平台 `app` job 以 `--check` 校验内置副本；`app-package` job 由 desktop-changes 输出控制。
+- 下载限速 `speedLimit`（KiB/s，0 为不限）：yt-dlp 用 `--limit-rate` 并强制单分片，aria2 用全局限速，直链分段共享 `app/internal/fetch/direct.go` 的令牌桶；与连接数滑块相互独立。热力图计数由 `app/internal/activity` 写入，首次运行用已有历史补齐。

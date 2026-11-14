@@ -327,8 +327,153 @@ jobs:
             release/**/*.blockmap
           retention-days: 7
 
+  # ===== 新版桌面客户端（Go + Wails，app/）=====
+  #
+  # 与上面的 Electron 产物**并行发布**：Electron 老用户仍从 latest*.yml 收到更新，
+  # 新客户端用独立前缀 KeepVideo-Desktop-，由 app/internal/update 的 wmlUpdate
+  # 按资产名 + checksums.txt 自更新。改这里的产物名必须同步 wml.go 的 wmlAssetRules。
+  build-desktop:
+    needs: [version, gate]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin/universal
+            suffix: mac-universal
+          - os: windows-latest
+            platform: windows/amd64
+            suffix: windows-x64
+          # Wails v2.16 的 cgo 默认找 webkit2gtk-4.0；24.04 只剩 4.1，所以固定 22.04
+          - os: ubuntu-22.04
+            platform: linux/amd64
+            suffix: linux-x64
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: app/go.mod
+          cache: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v6
+
+      - name: 安装 Linux 构建依赖
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      # `wails build -nsis` 依赖 makensis；windows-latest 默认没有，缺失时 flag 会被静默忽略
+      - name: 安装 NSIS（仅 Windows）
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: 安装 Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
+
+      - name: 前端依赖安装
+        working-directory: app/frontend
+        run: pnpm install --frozen-lockfile
+
+      # 顺序不能反：generate module 会先编译 Go 包，而 main.go 要求 frontend/dist 已存在
+      - name: 准备 embed 目录并生成绑定
+        shell: bash
+        run: |
+          bash app/scripts/prepare-embed-dir.sh
+          node scripts/sync-changelog.mjs --check
+          cd app && wails generate module
+
+      # 必须用 build.sh：它先编译依赖边车再带 withsidecar 构建，直接 wails build 的产物没有依赖探测能力
+      - name: 构建
+        shell: bash
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            bash app/scripts/build.sh -platform ${{ matrix.platform }} -skipbindings -nsis
+          else
+            bash app/scripts/build.sh -platform ${{ matrix.platform }} -skipbindings
+          fi
+
+      - name: 打包 macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          OUT="$GITHUB_WORKSPACE/KeepVideo-Desktop-${{ matrix.suffix }}-${VERSION}"
+          cd app/build/bin
+          codesign --verify --deep --strict --verbose=2 KeepVideo.app
+          ditto -c -k --sequesterRsrc --keepParent KeepVideo.app "${OUT}.zip"
+          ROOT="$(mktemp -d)"
+          mkdir -p "$ROOT/stage/.background"
+          cp -R KeepVideo.app "$ROOT/stage/"
+          ln -s /Applications "$ROOT/stage/Applications"
+          node "$GITHUB_WORKSPACE/scripts/gen-dmg-background.mjs" "$ROOT/stage/.background/background.png"
+          printf '%s\n' \
+            'Keep Video 尚未使用 Apple 开发者签名，第一次打开可能被 macOS 拦下。' \
+            '' \
+            '如果提示「已损坏」或「无法打开」：' \
+            '  1. 先把 KeepVideo.app 拖进「应用程序」' \
+            '  2. 打开「终端」执行：xattr -dr com.apple.quarantine /Applications/KeepVideo.app' \
+            '  3. 再双击打开（或右键 → 打开 → 仍要打开）' \
+            > "$ROOT/stage/首次打开说明.txt"
+          hdiutil create -volname "Keep Video" -srcfolder "$ROOT/stage" -ov -format UDZO -imagekey zlib-level=9 "${OUT}.dmg" >/dev/null
+          ls -la "$GITHUB_WORKSPACE"/KeepVideo-Desktop-*
+
+      - name: 打包 Windows
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $v = $env:VERSION
+          Compress-Archive -Path app/build/bin/KeepVideo.exe -DestinationPath "KeepVideo-Desktop-windows-x64-$v.zip"
+          $installer = Get-ChildItem -Path app/build/bin -Filter "*installer.exe" | Select-Object -First 1
+          if (-not $installer) { Write-Error "缺少 NSIS 安装器"; exit 1 }
+          Copy-Item $installer.FullName -Destination "KeepVideo-Desktop-windows-x64-$v-installer.exe"
+          Get-Item KeepVideo-Desktop-* | Format-List Name, Length
+
+      - name: 打包 Linux
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          tar -czf "KeepVideo-Desktop-${{ matrix.suffix }}-${VERSION}.tar.gz" -C app/build/bin KeepVideo
+          DEB="deb-pkg/keepvideo_${VERSION}_amd64"
+          mkdir -p "$DEB/usr/bin" "$DEB/usr/share/applications" "$DEB/usr/share/icons/hicolor/512x512/apps" "$DEB/DEBIAN"
+          install -m 755 app/build/bin/KeepVideo "$DEB/usr/bin/keepvideo"
+          install -m 644 app/build/appicon.png "$DEB/usr/share/icons/hicolor/512x512/apps/keepvideo.png"
+          # 用 printf 而不是 heredoc：heredoc 正文顶格写进 YAML 块标量会让整个工作流非法
+          printf '%s\n' '[Desktop Entry]' 'Name=Keep Video' 'Comment=Video downloader' 'Exec=/usr/bin/keepvideo' \
+            'Icon=keepvideo' 'Terminal=false' 'Type=Application' 'Categories=AudioVideo;Network;Utility;' \
+            > "$DEB/usr/share/applications/keepvideo.desktop"
+          printf '%s\n' 'Package: keepvideo' "Version: ${VERSION}" 'Section: utils' 'Priority: optional' \
+            'Architecture: amd64' 'Maintainer: Keep Video <support@keep.video>' \
+            'Depends: libgtk-3-0, libwebkit2gtk-4.0-37' \
+            'Description: Keep Video desktop video downloader.' > "$DEB/DEBIAN/control"
+          dpkg-deb --build --root-owner-group "$DEB" "KeepVideo-Desktop-${{ matrix.suffix }}-${VERSION}.deb"
+          ls -la KeepVideo-Desktop-*
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: desktop-${{ matrix.suffix }}
+          path: |
+            KeepVideo-Desktop-*.zip
+            KeepVideo-Desktop-*.tar.gz
+            KeepVideo-Desktop-*.dmg
+            KeepVideo-Desktop-*.exe
+            KeepVideo-Desktop-*.deb
+          retention-days: 7
+          if-no-files-found: error
+
   release:
-    needs: [version, build-mac-arm64, build-mac-x64, build-win, build-linux-x64, build-linux-arm64]
+    needs: [version, build-mac-arm64, build-mac-x64, build-win, build-linux-x64, build-linux-arm64, build-desktop]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: needs.version.outputs.version != ''
@@ -351,6 +496,14 @@ jobs:
       # 各 job 生成的 latest*.yml 汇总时会互相覆盖，按最终上传的文件重新生成
       - name: Generate update manifests
         run: node scripts/gen-update-manifests.mjs artifacts "$VERSION"
+
+      # 新版桌面客户端的自更新按 checksums.txt 校验 SHA-256（只收录 KeepVideo-Desktop- 产物）
+      - name: Generate desktop checksums
+        run: |
+          cd artifacts
+          find . -maxdepth 1 -type f -name 'KeepVideo-Desktop-*' -printf '%f\n' | sort | xargs sha256sum > checksums.txt
+          test -s checksums.txt
+          cat checksums.txt
 
       # 正文顶部生成「点徽章即下载」的引导区：Release 里 CHANGELOG 内容较长，
       # 此前不少用户拉到页面后不知道点哪里下载。下载链接按实际产物生成，
@@ -377,15 +530,19 @@ jobs:
           # 由 workflow_dispatch 的 prerelease 输入决定；打 tag 触发时为 false。
           prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
           body: ${{ steps.changelog.outputs.notes }}
+          # Electron 与新版客户端的产物名互不重叠（-Mac-/-Linux- 与 Desktop-mac/linux 大小写不同），
+          # 避免同一文件被两条模式重复上传
           files: |
-            artifacts/**/*.dmg
-            artifacts/**/*.zip
+            artifacts/**/KeepVideo-*-Mac-*.dmg
+            artifacts/**/KeepVideo-*-Mac-*.zip
             artifacts/**/KeepVideo-Setup-*.exe
             artifacts/**/KeepVideo-Portable-*.exe
-            artifacts/**/*.AppImage
-            artifacts/**/*.deb
-            artifacts/**/*.rpm
-            artifacts/**/*.tar.gz
+            artifacts/**/KeepVideo-*-Linux-*.AppImage
+            artifacts/**/KeepVideo-*-Linux-*.deb
+            artifacts/**/KeepVideo-*-Linux-*.rpm
+            artifacts/**/KeepVideo-*-Linux-*.tar.gz
+            artifacts/KeepVideo-Desktop-*
+            artifacts/checksums.txt
             artifacts/latest*.yml
             artifacts/**/*.blockmap
 

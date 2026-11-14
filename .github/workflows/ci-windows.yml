@@ -235,3 +235,121 @@ jobs:
       # Windows 侧要特别确认：边车是 .exe、没有误带 yt-dlp.exe/ffmpeg.exe
       - name: 产物内容校验
         run: pnpm test:package
+
+  # ===== Wails 桌面客户端（app/）=====
+  app:
+    name: 桌面客户端 · Wails 核心 / 边车 / 前端
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: app/go.mod
+          cache: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v6
+
+      - name: 安装 Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
+
+      - name: 前端依赖安装
+        working-directory: app/frontend
+        run: pnpm install --frozen-lockfile
+
+      # main.go 的 `//go:embed all:frontend/dist` 要求目录存在，否则 vet / 测试直接编译失败
+      - name: 准备 embed 目录
+        shell: bash
+        run: bash app/scripts/prepare-embed-dir.sh
+
+      - name: gofmt（客户端）
+        shell: bash
+        run: |
+          UNFORMATTED=$(gofmt -l app)
+          if [ -n "$UNFORMATTED" ]; then
+            echo "::error::以下文件未经过 gofmt 格式化："
+            echo "$UNFORMATTED"
+            exit 1
+          fi
+
+      - name: go vet / test（核心）
+        working-directory: app
+        shell: bash
+        run: go vet ./... && go test -shuffle=on -count=1 ./...
+
+      - name: go vet / test（依赖边车）
+        working-directory: app/sidecar
+        shell: bash
+        run: go vet ./... && go test -shuffle=on -count=1 ./...
+
+      - name: 内置更新日志与根 CHANGELOG 一致
+        run: node scripts/sync-changelog.mjs --check
+
+      # wailsjs 是生成物、不入库；svelte-check 依赖它的类型
+      - name: 生成 Wails 绑定
+        working-directory: app
+        run: wails generate module
+
+      - name: 前端类型检查（svelte-check）
+        working-directory: app/frontend
+        run: pnpm check
+
+      - name: 前端纯逻辑单测（Vitest）
+        working-directory: app/frontend
+        run: pnpm test
+
+  app-package:
+    name: 桌面客户端 · Wails 单文件构建
+    needs: desktop-changes
+    if: needs.desktop-changes.outputs.desktop == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: app/go.mod
+          cache: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v6
+
+      - name: 安装 Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
+
+      - name: 前端依赖安装
+        working-directory: app/frontend
+        run: pnpm install --frozen-lockfile
+
+      # main.go 的 `//go:embed all:frontend/dist` 要求目录存在，否则 vet / 测试直接编译失败
+      - name: 准备 embed 目录
+        shell: bash
+        run: bash app/scripts/prepare-embed-dir.sh
+
+      - name: 生成 Wails 绑定
+        working-directory: app
+        run: wails generate module
+
+      - name: 构建（含依赖边车）
+        shell: bash
+        run: bash app/scripts/build.sh -platform windows/amd64
+
+      - name: 产物自检
+        shell: bash
+        run: |
+          BIN=$(find app/build/bin -maxdepth 1 -type f -name 'KeepVideo.exe' | head -1)
+          if [ -z "$BIN" ]; then
+            echo "::error::构建产物里找不到 Keep Video 可执行文件"
+            find app/build/bin -maxdepth 2 | head -20
+            exit 1
+          fi
+          du -sh "$BIN"

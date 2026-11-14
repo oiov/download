@@ -26,6 +26,11 @@ describe('桌面打包路径筛选', () => {
   })
 
   it.each([
+    'app/main.go',
+    'app/frontend/src/App.svelte',
+    'app/sidecar/cmd/keepvideo-deps/main.go',
+    'app/build/darwin/Info.plist',
+    'scripts/sync-changelog.mjs',
     'src/App.vue',
     'src/i18n/web-locales.json',
     'electron/download/ytdlp.ts',
@@ -72,7 +77,7 @@ describe('桌面打包路径筛选', () => {
   it('支持 Windows 路径分隔符，但不匹配相似的目录名', () => {
     expect(needsDesktopBuild(['electron\\download\\ytdlp.ts'])).toBe(true)
     expect(needsDesktopBuild(['docker\\server\\index.ts'])).toBe(false)
-    expect(needsDesktopBuild(['src-other/file.ts', 'shared-docs/guide.md'])).toBe(false)
+    expect(needsDesktopBuild(['src-other/file.ts', 'shared-docs/guide.md', 'apps/readme.md'])).toBe(false)
   })
 
   it('空提交不重复打包', () => {

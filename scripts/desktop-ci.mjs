@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 
 // 渲染进程与下载内核由桌面和 Web 共用，不能因为在线端也引用就排除。
-const DESKTOP_DIRS = ['src/', 'electron/', 'backend/', 'shared/', 'public/', 'build/']
+const DESKTOP_DIRS = ['app/', 'src/', 'electron/', 'backend/', 'shared/', 'public/', 'build/']
 const DESKTOP_FILES = new Set([
   'package.json',
   'pnpm-lock.yaml',
@@ -24,6 +24,7 @@ const DESKTOP_FILES = new Set([
   'ldstore.ico',
   'LICENSE',
   'scripts/build-backend.sh',
+  'scripts/sync-changelog.mjs',
   'scripts/gen-deps-manifest.mjs',
   'scripts/gen-update-manifests.mjs',
   'scripts/gen-release-notes.mjs',
