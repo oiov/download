@@ -120,7 +120,7 @@ STRIPE_WEBHOOK_SECRET=whsec_该Webhook端点的签名密钥
 | --- | --- | --- |
 | `ANALYTICS_ENABLED` | `1` | `0` 关闭新统计事件采集；不会关闭下载业务、账户用量账本或管理员历史 |
 | `ANALYTICS_ENVIRONMENT` | `production`（模板） | 正式站点填 `production`，预览／验收填 `development` 或 `test`；非本地启用统计时漏填会拒绝启动 |
-| `ANALYTICS_RETENTION_DAYS` | `30` | 1–30 天原始统计保留，与文件和下载历史保留期独立 |
+| `ANALYTICS_RETENTION_DAYS` | `30` | 默认保留 30 天，可设为 1–180 天；与文件和下载历史保留期独立 |
 | `ANALYTICS_MAX_DAILY_MB` | `16` | 每日统计事件逻辑字节预算，按 MiB 换算，不含数据库索引、WAL 和备份占用 |
 
 ### Stripe 订阅

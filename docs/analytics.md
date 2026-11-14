@@ -18,7 +18,7 @@
 | --- | --- | --- |
 | `ANALYTICS_ENABLED` | `1` | `0` 停止新事件；到期旧日志仍清理，不影响下载 |
 | `ANALYTICS_ENVIRONMENT` | `development` | 仅允许 `production`、`development`、`test`；生产须显式配置 |
-| `ANALYTICS_RETENTION_DAYS` | `30` | 保留 1–30 个 UTC 日分区，含当日；不改变下载文件 TTL |
+| `ANALYTICS_RETENTION_DAYS` | `30` | 默认保留 30 天，可设为 1–180 个 UTC 日分区，含当日；不改变下载文件 TTL |
 | `ANALYTICS_MAX_DAILY_MB` | `16` | 每日事件序列化 JSON 加换行的逻辑字节上限，单位 MiB；超过后丢弃事件 |
 
 默认保留事件的逻辑载荷上限约 480 MiB，**不是数据库磁盘体积上限**：SQLite 表、索引、WAL、空闲页及迁移保留的 JSONL 都有额外开销。每日计数持久化，重启不重置。旧日志导入不因新配置变小而丢弃有效历史，该日后续写入仍受新上限约束。启动及每分钟执行清理，禁用采集仍清理旧事件。删除逻辑记录后空闲页复用，数据库不保证立即物理缩小或擦除；备份与人工导出的副本须另行管理保留期。

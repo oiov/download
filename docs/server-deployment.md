@@ -37,7 +37,7 @@ Web 服务与报表使用 Node 22.13+ 内置 SQLite，不需要另外部署数�
 | TASK_TIMEOUT_MINUTES | 60 | 下载任务超时 |
 | ANALYTICS_ENABLED | 1 | 设为 0 关闭本地事件记录，不影响下载 |
 | ANALYTICS_ENVIRONMENT | 本地 development | 非本地站点启用统计时必填；线上 production，预览显式 development 或 test |
-| ANALYTICS_RETENTION_DAYS | 30 | 1–30 个 UTC 日分区（含当日），与文件 TTL 独立 |
+| ANALYTICS_RETENTION_DAYS | 30 | 默认保留 30 天，可设为 1–180 个 UTC 日分区（含当日），与文件 TTL 独立 |
 | ANALYTICS_MAX_DAILY_MB | 16 | 单日事件 JSON 逻辑字节上限，超过后丢弃统计；不含 SQLite 索引、WAL 与备份开销 |
 | BETTER_AUTH_SECRET / GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET | 空 | 可选账户登录，详见下方账户配置 |
 | ADMIN_USER_IDS / API_BETA_USER_IDS | 空 | 显式授权稳定账户，逗号分隔；空名单默认关闭 |

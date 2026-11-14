@@ -16,6 +16,12 @@ const owner = 'a'.repeat(64), other = 'b'.repeat(64)
 const now = Date.now()
 const fixtureJob = (id = 'one', token = owner) => ({ id, owner: token, clientId: id, url: 'https://example.com/video', title: '测试', createdAt: now, status: 'completed', progress: 100 })
 
+function configChecks(sources = {}) {
+  const { readConfig } = loadSource(sources)('docker/server/config.ts')
+  assert.equal(readConfig({ ANALYTICS_RETENTION_DAYS: '180' }).analyticsRetentionDays, 180)
+  assert.throws(() => readConfig({ ANALYTICS_RETENTION_DAYS: '181' }), /最多保留 180 天/)
+}
+
 function stateChecks(sources = {}) {
   const dir = temporary(), load = loadSource(sources), { StateStore } = load('docker/server/state.ts')
   const analyticsId = randomUUID(), hash = createHash('sha256').update(owner).digest('hex')
@@ -283,6 +289,7 @@ async function isolationChecks() {
   } finally { locked?.close(); await analytics.close(); state.close(); fs.rmSync(dir, { recursive: true, force: true }) }
 }
 
+configChecks()
 stateChecks()
 rollbackChecks()
 await concurrentQuotaChecks()
@@ -292,6 +299,7 @@ await analyticsMigrationChecks()
 await reportChecks()
 await isolationChecks()
 for (const [file, before, after, check] of [
+  ['docker/server/config.ts', "> 180) throw new Error('统计原始事件最多保留 180 天')", "> 181) throw new Error('统计原始事件最多保留 181 天')", configChecks],
   ['docker/server/state.ts', 'UNIQUE(owner, client_id)', 'UNIQUE(owner, id)', stateChecks],
   ['docker/server/sqlite.ts', "try { db.exec('ROLLBACK') }", "try { db.exec('COMMIT') }", rollbackChecks],
   ['docker/server/jobs.ts', 'this.state.saveJob(job)', 'void 0', recoveryChecks],
@@ -303,4 +311,4 @@ for (const [file, before, after, check] of [
   const source = fs.readFileSync(file, 'utf8'); assert.ok(source.includes(before))
   await assert.rejects(async () => check({ [file]: source.replace(before, after) }), 'SQLite 变异必须被回归拦住：' + before)
 }
-console.log('通过：SQLite 迁移/回滚/权限/并发额度/重启恢复/容量/故障隔离、36 组报表等价及 7 个变异反证')
+console.log('通过：SQLite 迁移/回滚/权限/并发额度/重启恢复/容量/故障隔离、36 组报表等价及 8 个变异反证')

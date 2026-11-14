@@ -18,7 +18,7 @@ export function readConfig(env = process.env) {
     throw new Error('非本地站点必须显式设置 ANALYTICS_ENVIRONMENT=production、development 或 test，避免统计环境误标')
   }
   if (!['production', 'development', 'test'].includes(analyticsEnvironment)) throw new Error('统计环境必须为 production、development 或 test')
-  if (positive('ANALYTICS_RETENTION_DAYS', 30) > 30) throw new Error('统计原始事件最多保留 30 天')
+  if (positive('ANALYTICS_RETENTION_DAYS', 30) > 180) throw new Error('统计原始事件最多保留 180 天')
   const workDir = path.resolve(env.DOWNVID_DOWNLOADS || 'data/downloads')
   const r2 = { endpoint: env.R2_ENDPOINT || '', bucket: env.R2_BUCKET || '', accessKeyId: env.R2_ACCESS_KEY_ID || '', secretAccessKey: env.R2_SECRET_ACCESS_KEY || '' }
   if (storage === 'r2') {
