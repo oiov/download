@@ -5,7 +5,7 @@ import type { Jobs } from './jobs'
 import type { Billing } from './billing'
 import { scopes } from './platform-store'
 import { formBody, HttpError, privateHeaders, redirect, json } from './http'
-import { page, table, platformStyle, esc, bytes, date, badge, heading, siteLocale } from './platform-page'
+import { page, table, platformStyle, esc, bytes, date, badge, heading, siteLocale, heatmap } from './platform-page'
 import { accountTranslator } from '../../src/i18n/account'
 
 const dashboardRoutes = ['/dashboard', '/dashboard/', '/dashboard/tasks', '/dashboard/keys', '/dashboard/account']
@@ -124,8 +124,17 @@ export function createAccount(auth: Auth, api: Api, jobs: Jobs, billing: Billing
       const meter = (key: Parameters<typeof t>[0], used: number, limit: number, format: (n: number) => string | number = n => n) => `<div class="usage-card"><dt>${esc(t(key))}</dt><dd>${esc(format(used))} <small>/ ${esc(format(limit))}</small></dd><progress max="${Math.max(1, limit)}" value="${Math.min(used, limit)}" aria-label="${esc(t(key))}"></progress></div>`
       const claim = identity.guest && jobs.state.jobsForOwner(identity.guest).length ? `<section class="card section"><div class="card-head"><div><h2>${esc(t('claimTitle'))}</h2><p>${esc(t('claimBody'))}</p></div>${button('/account/claim', 'claim', '<input type="hidden" name="confirm" value="yes">')}</div></section>` : ''
       const pending = url.searchParams.get('checkout') === 'pending' && !auth.store.paid(identity.owner) ? `<p class="notice">${esc(t('pending'))}</p>` : ''
+      const activity = auth.store.activity(identity.owner), activityTotal = activity.counts.reduce((sum, n) => sum + n, 0)
+      const fill = (text: string, values: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''))
+      const numberFormat = new Intl.NumberFormat(locale.appLocale)
+      const activityCard = heatmap(activity, {
+        title: t('activityTitle'), summary: fill(t('activitySummary'), { total: numberFormat.format(activityTotal) }),
+        day: (day, count) => fill(t('activityDay'), { date: day, count: numberFormat.format(count) }),
+        less: t('activityLess'), more: t('activityMore'), note: t('activityNote'),
+      })
       const overview = heading(esc(t('dashboard')), esc(t('intro')), startButton) + pending + claim
         + `<section id="usage" class="section"><div class="card-head"><h2>${esc(t('usage'))}</h2></div><dl class="usage-grid">${meter('downloads', usage.downloads, limits.downloads)}${meter('parses', usage.parses, limits.parses)}${meter('generated', usage.generatedBytes, limits.generatedBytes, bytes)}${meter('delivered', usage.deliveredBytes, limits.deliveredBytes, bytes)}</dl><details class="details-note"><summary>${esc(t('usageDetails'))}</summary><p>${esc(t('reserved'))}: ${bytes(usage.reservedBytes)} · ${esc(t('deliveryUnconfirmed'))}: ${bytes(usage.uncertainDeliveryBytes)}</p><p>${esc(t('usageNote'))}</p></details></section>`
+        + activityCard
         + `<div class="grid-2"><section class="card flush tasks"><div class="card-head"><h2>${esc(t('recentTasks'))}</h2>${tasks.length ? `<a class="text-link" href="/dashboard/tasks${suffix}">${esc(t('viewAll'))} →</a>` : ''}</div>${taskTable(tasks.slice(0, 5))}</section><section class="card plan-card"><div class="card-head"><h2>${esc(t('currentPlan'))}</h2></div><p class="plan-name">${esc(t(limits.plan as 'free'))}</p><p>${esc(t('planNote'))}</p><div class="actions">${planActions}</div>${planNotice}</section></div>`
       send(200, shell('dashboard', overview)); return true
     } catch (error) {

@@ -92,6 +92,16 @@ export class PlatformStore {
     return { parses: sum('parse', 'n'), downloads: sum('download', 'n'), completed: sum('download', 'n', 'completed'), failed: sum('download', 'n', 'error'),
       generatedBytes: sum('download', 'bytes'), deliveredBytes: sum('delivery', 'bytes'), reservedBytes: sum('download', 'reserved'), deliveryReservedBytes: sum('delivery', 'reserved'), uncertainDeliveryBytes: sum('delivery', 'reserved', 'uncertain') }
   }
+  /** 最近 days 天（含今天，按 UTC 日期）每天成功完成的下载数，供 Dashboard 热力图使用。 */
+  activity(owner: string, days = 371, now = Date.now()) {
+    const start = Math.floor(now / DAY) * DAY - (days - 1) * DAY
+    const counts = new Array<number>(days).fill(0)
+    for (const row of this.db.prepare("SELECT CAST((at - ?) / ? AS INTEGER) d, COUNT(*) n FROM usage_events WHERE owner = ? AND kind = 'download' AND status = 'completed' AND at >= ? AND at <= ? GROUP BY d").all(start, DAY, owner, start, now)) {
+      const index = Number(row.d)
+      if (index >= 0 && index < days) counts[index] = Number(row.n)
+    }
+    return { start, counts }
+  }
   parse(owner: string, id: string, status = 'requested') {
     this.db.prepare('INSERT INTO usage_events VALUES (?, ?, ?, ?, ?, 0, 0)').run('parse:' + id, owner, 'parse', Date.now(), status)
   }

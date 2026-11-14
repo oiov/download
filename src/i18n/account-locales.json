@@ -110,7 +110,13 @@
     "developerIntro": "Analiza enlaces públicos, crea descargas asíncronas, consulta su estado y obtén los archivos. Se necesita una cuenta aprobada en la beta y los permisos correspondientes.",
     "apiSteps": "Crear una clave → Analizar un enlace → Crear una tarea → Consultar el estado → Guardar el archivo",
     "apiNote": "Crear una tarea requiere Idempotency-Key. Los reintentos deben reutilizar la misma clave y los mismos parámetros. Cambiar de clave de API no cobra el uso dos veces.",
-    "language": "Idioma"
+    "language": "Idioma",
+    "activityTitle": "Actividad de descargas",
+    "activitySummary": "{total} descargas completadas en el último año",
+    "activityDay": "{date}: {count} descargas",
+    "activityLess": "Menos",
+    "activityMore": "Más",
+    "activityNote": "Cuenta las descargas completadas por día UTC."
   },
   "pt-BR": {
     "dashboard": "Painel",
@@ -223,7 +229,13 @@
     "developerIntro": "Analise links públicos, crie downloads assíncronos, consulte o status e obtenha os arquivos. É necessária uma conta aprovada no beta com as permissões correspondentes.",
     "apiSteps": "Criar uma chave → Analisar um link → Criar uma tarefa → Consultar o status → Salvar o arquivo",
     "apiNote": "Criar uma tarefa exige Idempotency-Key. Novas tentativas devem reutilizar a mesma chave e os mesmos parâmetros. Trocar a chave de API não cobra o uso duas vezes.",
-    "language": "Idioma"
+    "language": "Idioma",
+    "activityTitle": "Atividade de downloads",
+    "activitySummary": "{total} downloads concluídos no último ano",
+    "activityDay": "{date}: {count} downloads",
+    "activityLess": "Menos",
+    "activityMore": "Mais",
+    "activityNote": "Conta os downloads concluídos por dia UTC."
   },
   "de": {
     "dashboard": "Dashboard",
@@ -336,7 +348,13 @@
     "developerIntro": "Analysiere öffentliche Links, erstelle asynchrone Downloads, frage den Status ab und rufe Dateien ab. Erforderlich sind ein freigeschaltetes Beta-Konto und die passenden Berechtigungen.",
     "apiSteps": "Schlüssel erstellen → Link analysieren → Aufgabe erstellen → Status abfragen → Datei speichern",
     "apiNote": "Zum Erstellen einer Aufgabe ist ein Idempotency-Key erforderlich. Wiederholungen müssen denselben Key und dieselben Parameter verwenden. Ein Wechsel des API-Schlüssels führt nicht zu doppelter Abrechnung.",
-    "language": "Sprache"
+    "language": "Sprache",
+    "activityTitle": "Download-Aktivität",
+    "activitySummary": "{total} abgeschlossene Downloads im letzten Jahr",
+    "activityDay": "{date}: {count} Downloads",
+    "activityLess": "Weniger",
+    "activityMore": "Mehr",
+    "activityNote": "Zählt abgeschlossene Downloads pro UTC-Tag."
   },
   "fr": {
     "dashboard": "Tableau de bord",
@@ -449,7 +467,13 @@
     "developerIntro": "Analysez des liens publics, créez des téléchargements asynchrones, suivez leur statut et récupérez les fichiers. Un compte admis à la bêta et les autorisations correspondantes sont nécessaires.",
     "apiSteps": "Créer une clé → Analyser un lien → Créer une tâche → Suivre le statut → Enregistrer le fichier",
     "apiNote": "La création d’une tâche exige un Idempotency-Key. Les nouvelles tentatives doivent réutiliser la même clé et les mêmes paramètres. Changer de clé API n’entraîne pas de double décompte.",
-    "language": "Langue"
+    "language": "Langue",
+    "activityTitle": "Activité de téléchargement",
+    "activitySummary": "{total} téléchargements terminés au cours de la dernière année",
+    "activityDay": "{date} : {count} téléchargements",
+    "activityLess": "Moins",
+    "activityMore": "Plus",
+    "activityNote": "Compte les téléchargements terminés par jour UTC."
   },
   "ja": {
     "dashboard": "ダッシュボード",
@@ -562,7 +586,13 @@
     "developerIntro": "公開リンクの解析、非同期ダウンロードの作成、状態の確認、ファイルの取得が行えます。ベータ版の利用が承認されたアカウントと対応する権限が必要です。",
     "apiSteps": "キーを作成 → リンクを解析 → タスクを作成 → 状態を確認 → ファイルを保存",
     "apiNote": "タスクの作成には Idempotency-Key が必要です。再試行では同じキーと同じパラメーターを使用してください。API キーを切り替えても二重に計上されることはありません。",
-    "language": "言語"
+    "language": "言語",
+    "activityTitle": "ダウンロードアクティビティ",
+    "activitySummary": "過去 1 年間に {total} 件のダウンロードが完了",
+    "activityDay": "{date}：{count} 件のダウンロード",
+    "activityLess": "少",
+    "activityMore": "多",
+    "activityNote": "UTC 日付ごとに完了したダウンロードを集計します。"
   },
   "ko": {
     "dashboard": "대시보드",
@@ -675,7 +705,13 @@
     "developerIntro": "공개 링크를 분석하고, 비동기 다운로드를 만들고, 상태를 조회하고, 파일을 받을 수 있습니다. 베타 승인을 받은 계정과 해당 권한이 필요합니다.",
     "apiSteps": "키 만들기 → 링크 분석 → 작업 만들기 → 상태 조회 → 파일 저장",
     "apiNote": "작업을 만들 때 Idempotency-Key가 필요합니다. 재시도할 때는 같은 키와 같은 매개변수를 사용하세요. API 키를 바꿔도 중복 차감되지 않습니다.",
-    "language": "언어"
+    "language": "언어",
+    "activityTitle": "다운로드 활동",
+    "activitySummary": "지난 1년간 {total}건의 다운로드 완료",
+    "activityDay": "{date}: 다운로드 {count}건",
+    "activityLess": "적음",
+    "activityMore": "많음",
+    "activityNote": "UTC 날짜별로 완료된 다운로드를 집계합니다."
   },
   "ru": {
     "dashboard": "Панель",
@@ -788,6 +824,12 @@
     "developerIntro": "Анализируйте публичные ссылки, создавайте асинхронные загрузки, проверяйте статус и получайте файлы. Нужен аккаунт, допущенный к бета-тестированию, и соответствующие права.",
     "apiSteps": "Создать ключ → Проанализировать ссылку → Создать задачу → Проверить статус → Сохранить файл",
     "apiNote": "Для создания задачи нужен Idempotency-Key. Повторные запросы должны использовать тот же ключ и те же параметры. Смена API-ключа не приводит к повторному списанию.",
-    "language": "Язык"
+    "language": "Язык",
+    "activityTitle": "Активность загрузок",
+    "activitySummary": "{total} завершённых загрузок за последний год",
+    "activityDay": "{date}: загрузок — {count}",
+    "activityLess": "Меньше",
+    "activityMore": "Больше",
+    "activityNote": "Считает завершённые загрузки по дням UTC."
   }
 }

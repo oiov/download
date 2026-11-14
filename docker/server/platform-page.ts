@@ -24,6 +24,27 @@ export function badge(value: unknown, language = 'en', label = stateLabel(value,
 export function heading(title: string, intro = '', actions = '') {
   return `<div class="page-head"><div><h1>${title}</h1>${intro ? `<p class="intro">${intro}</p>` : ''}</div>${actions ? `<div class="page-actions">${actions}</div>` : ''}</div>`
 }
+/** 热力图强度分档：按当期最大值的比例分 4 档，次数为 0 时是 0 档。 */
+export function heatLevel(count: number, max: number) {
+  if (count <= 0 || max <= 0) return 0
+  return Math.min(4, Math.max(1, Math.ceil(count / max * 4)))
+}
+/**
+ * 下载活动热力图（GitHub 贡献图样式）。私有页面 CSP 禁止内联样式，
+ * 强度只能用 class 表达；按列（周）排布，每列从周一到周日。
+ */
+export function heatmap(activity: { start: number; counts: number[] }, labels: { title: string; summary: string; day: (date: string, count: number) => string; less: string; more: string; note: string }) {
+  const { start, counts } = activity
+  const max = Math.max(0, ...counts)
+  const lead = (new Date(start).getUTCDay() + 6) % 7
+  const cells = Array.from({ length: lead }, () => '<span class="heat-cell void"></span>')
+  counts.forEach((count, index) => {
+    const day = new Date(start + index * 86400000).toISOString().slice(0, 10)
+    cells.push(`<span class="heat-cell l${heatLevel(count, max)}" title="${esc(labels.day(day, count))}"></span>`)
+  })
+  const legend = [0, 1, 2, 3, 4].map(level => `<span class="heat-cell l${level}"></span>`).join('')
+  return `<section class="card heat-card"><div class="card-head"><div><h2>${esc(labels.title)}</h2><p>${esc(labels.summary)}</p></div></div><div class="heat-scroll"><div class="heat-grid" role="img" aria-label="${esc(labels.summary)}">${cells.join('')}</div></div><div class="heat-foot"><span class="note">${esc(labels.note)}</span><span class="heat-legend">${esc(labels.less)}${legend}${esc(labels.more)}</span></div></section>`
+}
 // 私有页面 CSP 禁止内联样式，用量条只能用原生 <progress>。
 export const platformStyle = seeStyle + `
 body { background: var(--paper); }
@@ -110,6 +131,21 @@ h1 .count { font-size: 14px; font-weight: 600; color: var(--muted); background: 
 .usage-card dd small { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
 .usage-card progress { height: 6px; display: block; }
 .grid-2 > .card { margin-top: 0; }
+.heat-card { margin-top: 20px; }
+/* 窄屏时滚动容器用 rtl 让初始位置停在最近几周，网格本身仍按 ltr 排列 */
+.heat-scroll { overflow-x: auto; padding-bottom: 4px; direction: rtl; }
+.heat-grid { direction: ltr; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, auto); grid-auto-columns: minmax(10px, 1fr); gap: 3px; width: max-content; min-width: 100%; }
+.heat-grid .heat-cell { aspect-ratio: 1; }
+.heat-cell { display: block; width: auto; height: auto; border-radius: 3px; background: var(--track); }
+.heat-cell.void { background: transparent; }
+.heat-cell.l1 { background: color-mix(in srgb, var(--accent) 28%, var(--track)); }
+.heat-cell.l2 { background: color-mix(in srgb, var(--accent) 52%, var(--track)); }
+.heat-cell.l3 { background: color-mix(in srgb, var(--accent) 76%, var(--track)); }
+.heat-cell.l4 { background: var(--focus); }
+.heat-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+.heat-foot .note { margin: 0; }
+.heat-legend { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.heat-legend .heat-cell { width: 10px; height: 10px; }
 .grid-2 { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 20px; align-items: start; margin-top: 20px; }
 .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 24px; }
 .link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }

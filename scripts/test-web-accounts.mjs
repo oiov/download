@@ -322,6 +322,25 @@ function storeChecks(sources = {}) {
     assert.equal(grants.admin(grants.account(account.id)),false)
   } finally {state.close();fs.rmSync(dir,{recursive:true,force:true})}
 }
+function activityChecks(sources = {}) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(),'keep-activity-'))
+  const load = loader({}, { URL }, sources), { StateStore } = load('docker/server/state.ts'), { PlatformStore } = load('docker/server/platform-store.ts'), { heatmap, heatLevel } = load('docker/server/platform-page.ts')
+  const state = new StateStore(dir), store = new PlatformStore(state.db, readConfig({}))
+  try {
+    const day = 86400000, now = Date.UTC(2026, 10, 14, 12), insert = state.db.prepare('INSERT INTO usage_events VALUES (?, ?, ?, ?, ?, 0, 0)')
+    insert.run('job:a', 'owner', 'download', now - 1000, 'completed'); insert.run('job:b', 'owner', 'download', now - 2000, 'completed')
+    insert.run('job:c', 'owner', 'download', now - 3 * day, 'completed'); insert.run('job:d', 'owner', 'download', now, 'error')
+    insert.run('job:e', 'other', 'download', now, 'completed'); insert.run('parse:f', 'owner', 'parse', now, 'completed')
+    insert.run('job:g', 'owner', 'download', now - 400 * day, 'completed')
+    const activity = store.activity('owner', 7, now)
+    assert.equal(activity.start, Date.UTC(2026, 10, 8)); assert.deepEqual([...activity.counts], [0, 0, 0, 1, 0, 0, 2], '只统计本人成功完成的下载并按 UTC 日期归档')
+    assert.deepEqual([0, 1, 4, 9, 13, 16].map(count => heatLevel(count, 16)), [0, 1, 1, 3, 4, 4])
+    const html = heatmap(activity, { title: 'T', summary: 'S', day: (date, count) => `${date}:${count}`, less: 'L', more: 'M', note: 'N' })
+    assert.match(html, /class="heat-cell l4" title="2026-11-14:2"/)
+    assert.equal((html.match(/heat-cell void/g) || []).length, 6, '首列按周一对齐（2026-11-08 是周日）')
+    assert.doesNotMatch(html, /style=/, '私有页面 CSP 禁止内联样式')
+  } finally {state.close();fs.rmSync(dir,{recursive:true,force:true})}
+}
 async function adminProcessChecks() {
   let bundled=true, call, input
   const fixtureProcess={execPath:'C:\\Program Files\\nodejs\\node.exe',env:{PATH:'C:\\Windows',SystemRoot:'C:\\Windows',BETTER_AUTH_SECRET:secret,STRIPE_SECRET_KEY:'fixture-private-key',NODE_OPTIONS:'--inspect'}}
@@ -346,7 +365,7 @@ async function adminProcessChecks() {
   console.log('通过：新增管理员子进程的 Windows 路径、凭据隔离与 CRLF 语义')
 }
 try {
-  downloadHistoryChecks(); await loginFlowChecks(); await billingChecks(); storeChecks(); await adminProcessChecks()
+  downloadHistoryChecks(); await loginFlowChecks(); await billingChecks(); storeChecks(); activityChecks(); await adminProcessChecks()
   downloadHistoryChecks(Object.fromEntries(['docker/server/download-history.ts', 'docker/server/state.ts', 'docker/server/admin-data.ts', 'docker/server/admin-downloads.ts'].map(file => [file, fs.readFileSync(path.join(root, file), 'utf8').replace(/\r?\n/g, '\r\n')])))
   for (const [file, before, after] of [
     ['docker/server/download-history.ts', 'source: historySource(job.url)', 'source: job.url'],
@@ -376,6 +395,16 @@ try {
     assert.throws(()=>storeChecks({'docker/server/platform-store.ts':source.replaceAll(before,after)}),'账户变异必须被拦住：'+before)
   }
   console.log('通过：任务认领与用量账本的 3 个变异反证')
+  for (const [file, before, after] of [
+    ['docker/server/platform-store.ts', "kind = 'download' AND status = 'completed' AND", "kind = 'download' AND"],
+    ['docker/server/platform-store.ts', 'WHERE owner = ? AND kind', 'WHERE ? IS NOT NULL AND kind'],
+    ['docker/server/platform-page.ts', 'const lead = (new Date(start).getUTCDay() + 6) % 7', 'const lead = new Date(start).getUTCDay()'],
+    ['docker/server/platform-page.ts', 'Math.ceil(count / max * 4)', 'Math.round(count / max * 4)'],
+  ]) {
+    const source=fs.readFileSync(path.join(root,file),'utf8'); assert.ok(source.includes(before))
+    assert.throws(()=>activityChecks({[file]:source.replace(before,after)}),'热力图变异必须被拦住：'+before)
+  }
+  console.log('通过：Dashboard 下载热力图的统计口径、周对齐、强度分档与 4 个变异反证')
   for(const [before,after] of [
     ['this.stripe.webhooks.constructEvent(payload, signature, this.config.stripeWebhookSecret)', "JSON.parse(payload.toString('utf8'))"],
     ["if (db.prepare('SELECT 1 FROM billing_events WHERE id = ?').get(event.id)) return", 'if (false) return'],
