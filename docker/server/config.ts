@@ -14,9 +14,6 @@ export function readConfig(env = process.env) {
   const dataDir = path.resolve(env.DOWNVID_DATA_DIR || 'data/userdata')
   const analyticsEnvironment = env.ANALYTICS_ENVIRONMENT || 'development'
   const localOrigin = ['localhost', '127.0.0.1', '[::1]'].includes(origin.hostname)
-  const seePassword = env.SEE_PASSWORD || ''
-  if (seePassword && (seePassword.trim().length < 16 || Buffer.byteLength(seePassword) > 1024)) throw new Error('SEE_PASSWORD 必须至少 16 个非首尾空白字符，且不超过 1024 字节')
-  if (seePassword && !localOrigin && origin.protocol !== 'https:') throw new Error('启用 /see 时非本地 SITE_URL 必须使用 HTTPS')
   if (!localOrigin && env.ANALYTICS_ENABLED !== '0' && !env.ANALYTICS_ENVIRONMENT) {
     throw new Error('非本地站点必须显式设置 ANALYTICS_ENVIRONMENT=production、development 或 test，避免统计环境误标')
   }
@@ -29,7 +26,25 @@ export function readConfig(env = process.env) {
     const endpoint = new URL(r2.endpoint)
     if (endpoint.protocol !== 'https:' || endpoint.username || endpoint.password) throw new Error('R2_ENDPOINT 必须使用 HTTPS')
   }
-  return { storage, origin: origin.origin, dataDir, workDir, r2, seePassword,
+  const authSecret = env.BETTER_AUTH_SECRET || ''
+  const googleClientId = env.GOOGLE_CLIENT_ID || ''
+  const googleClientSecret = env.GOOGLE_CLIENT_SECRET || ''
+  if (authSecret && authSecret.length < 32) throw new Error('BETTER_AUTH_SECRET 必须至少 32 字符')
+  if (!!googleClientId !== !!googleClientSecret || (googleClientId && !authSecret)) throw new Error('Google 登录配置不完整')
+  if (authSecret && !localOrigin && origin.protocol !== 'https:') throw new Error('启用账户时非本地 SITE_URL 必须使用 HTTPS')
+  const list = (name: string) => (env[name] || '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean)
+  const stripeSecret = env.STRIPE_SECRET_KEY || '', stripeWebhookSecret = env.STRIPE_WEBHOOK_SECRET || '', stripePriceId = env.STRIPE_PRICE_ID || ''
+  if ([stripeSecret, stripeWebhookSecret, stripePriceId].some(Boolean) && ![authSecret, googleClientId, stripeSecret, stripeWebhookSecret, stripePriceId].every(Boolean)) throw new Error('Stripe 订阅配置不完整')
+  return { storage, origin: origin.origin, dataDir, workDir, r2,
+    authSecret, googleClientId, googleClientSecret, adminEmails: list('ADMIN_EMAILS'), apiBetaEmails: list('API_BETA_EMAILS'), adminIds: list('ADMIN_USER_IDS'), apiBetaIds: list('API_BETA_USER_IDS'),
+    stripeSecret, stripeWebhookSecret, stripePriceId,
+    accountParseDaily: positive('ACCOUNT_PARSE_DAILY_LIMIT', 500), accountDownloadDaily: positive('ACCOUNT_DOWNLOAD_DAILY_LIMIT', 100),
+    proParseDaily: positive('PRO_PARSE_DAILY_LIMIT', 2000), proDownloadDaily: positive('PRO_DOWNLOAD_DAILY_LIMIT', 500),
+    accountGeneratedBytes: positive('ACCOUNT_GENERATED_DAILY_MB', 10240) * 1048576, proGeneratedBytes: positive('PRO_GENERATED_DAILY_MB', 51200) * 1048576,
+    accountDeliveryBytes: positive('ACCOUNT_DELIVERY_DAILY_MB', 20480) * 1048576, proDeliveryBytes: positive('PRO_DELIVERY_DAILY_MB', 102400) * 1048576,
+    guestGeneratedBytes: positive('WEB_GENERATED_DAILY_MB', 4096) * 1048576, guestDeliveryBytes: positive('WEB_DELIVERY_DAILY_MB', 10240) * 1048576,
+    ownerConcurrency: positive('WEB_OWNER_CONCURRENCY', 2),
+    historyRetentionDays: positive('DOWNLOAD_HISTORY_RETENTION_DAYS', 90),
     analyticsEnabled: env.ANALYTICS_ENABLED !== '0', analyticsEnvironment: analyticsEnvironment as 'production' | 'development' | 'test',
     analyticsRetentionDays: positive('ANALYTICS_RETENTION_DAYS', 30),
     analyticsMaxDailyBytes: positive('ANALYTICS_MAX_DAILY_MB', 16) * 1024 * 1024,

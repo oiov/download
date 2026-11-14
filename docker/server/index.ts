@@ -3,19 +3,22 @@ import fs from 'node:fs'
 import { isWebPage } from '../../shared/web-routes'
 import path from 'node:path'
 import { randomBytes, randomUUID } from 'node:crypto'
-import { Transform } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
 import { WebSocketServer, WebSocket } from 'ws'
 import { readConfig } from './config'
 import { isAllowedOrigin } from './security'
 import { startEgress } from './egress'
 import { Jobs, type Job } from './jobs'
 import { serveStatic } from './static'
-import { parseRange } from './storage'
 import { Analytics } from './analytics'
-import { cleanContext, isOpaqueId, type EventFields } from '../../shared/web-analytics'
+import { cleanContext, isOpaqueId } from '../../shared/web-analytics'
 import { webErrorCode, WebError } from '../../shared/web-errors'
-import { createSee } from './see'
+import { createAuth, type Identity } from './auth'
+import { createApi } from './api'
+import { createAdmin } from './admin'
+import { createAccount } from './account'
+import { Billing } from './billing'
+import { createFiles } from './files'
+import { HttpError, json, privateHeaders } from './http'
 
 process.env.KEEP_WEB_MODE = '1'
 const config = readConfig()
@@ -26,11 +29,16 @@ const egress = await startEgress()
 const analytics = new Analytics(config)
 const jobs = new Jobs(config, egress.url, analytics)
 const state = jobs.state
-const see = createSee(config, root)
-function session(req: http.IncomingMessage) {
-  const token = /(?:^|;\s*)keep_session=([a-f0-9]{64})(?:;|$)/.exec(req.headers.cookie || '')?.[1]
-  return token && state.session(token) ? token : undefined
-}
+const auth = await createAuth(config, state)
+const api = createApi(auth, jobs)
+const billing = new Billing(config, auth.store)
+const admin = createAdmin(auth, jobs, root)
+const sockets = new Map<WebSocket, { req: http.IncomingMessage; identity: Identity }>()
+const files = createFiles(auth, jobs, analytics)
+const deliveries = files.deliveries
+const revokeSockets = (owner: string) => { for (const [ws, value] of sockets) if (value.identity.owner === owner) ws.close(1008) }
+const account = createAccount(auth, api, jobs, billing, revokeSockets)
+const handshake = new WeakMap<http.IncomingMessage, Identity>()
 const server = http.createServer(async (req, res) => {
   try {
     res.setHeader('X-Content-Type-Options', 'nosniff')
@@ -41,75 +49,74 @@ const server = http.createServer(async (req, res) => {
       if (!target.startsWith('/') || target.startsWith('//') || /[\\#\u0000-\u0020\u007f]/.test(target)) throw new Error('请求路径无效')
       url = new URL(target, config.origin)
     } catch { res.writeHead(400).end(); return }
-    if (await see.handle(req, res, url)) return
+    if (url.pathname === '/api/billing/webhook') { await billing.webhook(req, res); return }
+    const signingOut = url.pathname === '/api/auth/sign-out' ? await auth.identity(req) : undefined
+    if (await auth.handle(req, res, url)) { if (signingOut && res.statusCode < 400) revokeSockets(signingOut.owner); return }
+    if (await account.handle(req, res, url)) return
+    if (await admin.handle(req, res, url)) return
+    if (await api.handle(req, res, url)) return
     if (!['GET', 'HEAD'].includes(req.method || '')) { res.writeHead(405).end(); return }
     if (url.pathname === '/healthz') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ ok: true, version })); return }
     if (url.pathname.startsWith('/api/')) {
       res.setHeader('Cache-Control', 'private, no-store')
       res.setHeader('X-Robots-Tag', 'noindex')
-      const owner = session(req)
-      if (!owner) { res.writeHead(401).end(); return }
-      if (url.pathname.startsWith('/api/files/')) {
-        const job = jobs.jobs.get(url.pathname.slice('/api/files/'.length))
-        if (!job || job.owner !== owner) { res.writeHead(404).end(); return }
-        const started = Date.now()
-        const fields: EventFields = { entityId: job.analytics?.entityId, method: req.method as 'GET' | 'HEAD', bytes: 0, status: 500, result: 'error' }
-        try {
-          if (!job.file || Date.now() - job.createdAt >= config.ttl) { fields.status = 404; res.writeHead(404).end(); return }
-          try {
-            const range = parseRange(req.headers.range, job.file.size)
-            if (range) { fields.rangeStart = range.start; fields.rangeEnd = range.end }
-          } catch { fields.status = 416; res.writeHead(416, { 'Content-Range': 'bytes */' + job.file.size }).end(); return }
-          const file = await jobs.storage.open(job.file, job.localPath!, req.headers.range)
-          fields.status = file.contentRange ? 206 : 200
-          res.writeHead(fields.status, { 'Content-Type': 'application/octet-stream', 'Content-Length': file.size, 'Accept-Ranges': 'bytes', 'Content-Disposition': "attachment; filename*=UTF-8''" + encodeURIComponent(job.file.name), ...(file.contentRange ? { 'Content-Range': file.contentRange } : {}) })
-          if (req.method === 'HEAD') { file.stream.destroy(); res.end(); fields.result = 'completed'; return }
-          const counter = new Transform({ transform(chunk, _encoding, callback) { fields.bytes! += chunk.length; callback(null, chunk) } })
-          await pipeline(file.stream, counter, res)
-          fields.result = 'completed'
-        } catch {
-          fields.result = res.destroyed ? 'aborted' : 'error'
-          if (!res.headersSent) res.writeHead(500)
-          res.end()
-        } finally {
-          analytics.record('file_delivery_finished', job.analytics, { ...fields, durationMs: Date.now() - started })
-        }
-        return
-      }
+      if (await files.handle(req, res, url)) return
+      if (!await auth.identity(req, true)) { res.writeHead(401).end(); return }
       res.writeHead(404).end(); return
     }
-    if (isWebPage(url.pathname) && !session(req)) {
+    if (isWebPage(url.pathname) && !auth.guest(req)) {
       const token = randomBytes(32).toString('hex')
       try { state.createSession(token, Date.now() + 30 * 86400000, randomUUID()) }
       catch { res.writeHead(503).end(); return }
       res.setHeader('Set-Cookie', 'keep_session=' + token + '; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000' + (config.origin.startsWith('https:') ? '; Secure' : ''))
     }
     serveStatic(req, res, url, process.env.WEBSITE_DIST || path.join(root, 'website/dist'), process.env.DOWNVID_WEB_DIST || path.join(root, 'docker/dist-web'))
-  } catch { if (!res.headersSent) res.writeHead(500); res.end() }
+  } catch (error) {
+    if (!res.headersSent) {
+      privateHeaders(res)
+      if (error instanceof HttpError) { if (error.retryAfter) res.setHeader('Retry-After', String(error.retryAfter)); json(res, error.status, { error: error.code }) }
+      else res.writeHead(500).end()
+    } else res.end()
+  }
 })
 
-const sockets = new Map<WebSocket, string>()
 const browserEvents = new Map<string, number>()
 const wss = new WebSocketServer({ server, path: '/api/ws', maxPayload: 32768, verifyClient: (info, done) => {
-  const owner = session(info.req)
-  done(!!owner && isAllowedOrigin(info.origin, config.origin) && [...sockets.values()].filter(value => value === owner).length < 5, 403)
+  if (!isAllowedOrigin(info.origin, config.origin)) { done(false, 403); return }
+  void auth.identity(info.req).then(identity => {
+    const allowed = !!identity && [...sockets.values()].filter(value => value.identity.owner === identity.owner).length < 5
+    if (allowed) handshake.set(info.req, identity!)
+    done(allowed, 403)
+  }).catch(() => done(false, 503))
 } })
 function send(owner: string, event: string, data: unknown) {
-  for (const [ws, id] of sockets) if (id === owner && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ event, data }))
+  for (const [ws, value] of sockets) if (value.identity.owner === owner && ws.readyState === WebSocket.OPEN) {
+    void validSocket(ws, value).then(valid => { if (valid && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ event, data })) }).catch(() => ws.close(1011))
+  }
+}
+async function validSocket(ws: WebSocket, value: { req: http.IncomingMessage; identity: Identity }) {
+  const identity = await auth.identity(value.req)
+  const valid = !!identity && identity.owner === value.identity.owner && identity.sessionId === value.identity.sessionId
+  if (!valid) ws.close(1008)
+  return valid
 }
 jobs.on('progress', (owner, data) => send(owner, 'download:progress', data))
 jobs.on('updated', owner => send(owner, 'history:updated', jobs.list(owner)))
 
 wss.on('connection', (ws, req) => {
-  const owner = session(req)!
-  sockets.set(ws, owner)
+  const identity = handshake.get(req)!
+  const owner = identity.owner
+  const connection = { req, identity }
+  sockets.set(ws, connection)
   let requests = 0
   let telemetryRequests = 0
   let windowStart = Date.now()
   const waiting = new Map<string, Set<number>>()
   const reply = (id: number, result?: unknown, errorCode?: string, retryAfterSeconds?: number) => {
-    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ id, result, ...(errorCode ? { error: true, errorCode } : {}),
-      ...(Number.isSafeInteger(retryAfterSeconds) && retryAfterSeconds! > 0 ? { retryAfterSeconds: Math.min(retryAfterSeconds!, 86400) } : {}) }))
+    void validSocket(ws, connection).then(valid => {
+      if (valid && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ id, result, ...(errorCode ? { error: true, errorCode } : {}),
+        ...(Number.isSafeInteger(retryAfterSeconds) && retryAfterSeconds! > 0 ? { retryAfterSeconds: Math.min(retryAfterSeconds!, 86400) } : {}) }))
+    }).catch(() => ws.close(1011))
   }
   const finished = (job: Job) => {
     if (job.owner !== owner) return
@@ -121,12 +128,13 @@ wss.on('connection', (ws, req) => {
   ws.on('message', async raw => {
     let id = 0
     try {
+      if (!await validSocket(ws, connection)) return
       if (Date.now() - windowStart > 60000) { requests = 0; telemetryRequests = 0; windowStart = Date.now() }
       const message = JSON.parse(String(raw))
       if (!Number.isSafeInteger(message.id) || !Array.isArray(message.args)) throw new Error('请求格式无效')
       id = message.id
       const args = message.args
-      const context = cleanContext({ ...message.context, sessionId: state.session(owner)?.analyticsId })
+      const context = cleanContext({ ...message.context, sessionId: identity.analyticsId })
       if (message.channel === 'analytics:event') {
         if (++telemetryRequests > 60) { reply(id, false); return }
       } else if (++requests > 120) {
@@ -189,6 +197,13 @@ const cleanup = setInterval(() => {
   for (const [id, at] of browserEvents) if (Date.now() - at > 86400000) browserEvents.delete(id)
 }, 60000)
 cleanup.unref()
+const authorizationCheck = setInterval(() => {
+  for (const [ws, value] of sockets) void validSocket(ws, value).catch(() => ws.close(1011))
+  for (const [res, value] of deliveries) void auth.identity(value.req, true).then(identity => {
+    if (!identity || identity.owner !== value.owner || identity.keyId !== value.keyId || identity.sessionId !== value.sessionId) res.destroy()
+  }).catch(() => res.destroy())
+}, 5000)
+authorizationCheck.unref()
 await jobs.cleanup()
 await analytics.cleanup()
 server.listen(config.port, config.host, () => console.log('Keep Video 网站服务已启动'))
@@ -197,11 +212,17 @@ async function shutdown() {
   if (stopping) return
   stopping = true
   clearInterval(cleanup)
-  server.close()
+  clearInterval(authorizationCheck)
+  jobs.closing = true
+  const httpClosed = new Promise<void>(resolve => server.close(() => resolve()))
+  for (const res of deliveries.keys()) res.destroy()
   for (const ws of sockets.keys()) ws.close(1001)
   try {
-    await see.close()
+    await admin.close()
+    await billing.close()
     await cleaning
+    // 响应和交付账本提交完成之前，不能关闭业务数据库。
+    await httpClosed
     await jobs.close()
     await analytics.close()
     egress.server.close()

@@ -1,0 +1,43 @@
+import { accountTranslator, type AccountMessage } from '../../src/i18n/account'
+import { escapeHTML as esc } from './see-page'
+import { seeStyle } from './see-style'
+
+export { esc }
+export const bytes = (n: number) => { const i = n > 0 ? Math.min(4, Math.floor(Math.log(n) / Math.log(1024))) : 0; return (n / 1024 ** i).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' ' + ['B', 'KiB', 'MiB', 'GiB', 'TiB'][i] }
+export const date = (n: number | null | undefined) => n ? new Date(n).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : '—'
+export function stateLabel(value: unknown, language = 'en') {
+  const labels: Record<string, AccountMessage> = { queued: 'statusQueued', merging: 'statusMerging', uploading: 'statusUploading', pending: 'statusPending', downloading: 'statusDownloading', completed: 'statusCompleted', error: 'statusError', paused: 'statusPaused', requested: 'statusRequested', success: 'statusSuccess', streaming: 'statusStreaming', aborted: 'statusAborted', uncertain: 'statusUncertain', active: 'statusActive', trialing: 'statusTrialing', past_due: 'statusPastDue', canceled: 'statusCanceled', unpaid: 'statusUnpaid', incomplete: 'statusIncomplete', incomplete_expired: 'statusExpired', available: 'statusAvailable', missing: 'statusMissing', unavailable: 'statusUnavailable' }
+  return labels[String(value)] ? accountTranslator(language)(labels[String(value)]) : String(value)
+}
+export const platformStyle = seeStyle + `
+.header { max-width:1320px; gap:20px; height:auto; min-height:86px; flex-wrap:wrap; padding-block:18px; }
+.header nav { display:flex; flex-wrap:wrap; gap:18px; align-items:center; font-size:14px; }
+.header nav a { text-decoration:none; } nav a[aria-current=page] { color:var(--focus); font-weight:700; }
+.layout { max-width:1320px; margin:auto; display:grid; grid-template-columns:190px minmax(0,1fr); }
+.rail { padding:42px 20px 20px 32px; border-right:1px solid var(--line); }
+.rail nav { display:grid; gap:8px; position:sticky; top:24px; }.rail a { padding:12px; border-radius:7px; text-decoration:none; font-size:14px; }
+.rail a[aria-current=page] { background:var(--surface); }.layout main { width:100%; min-width:0; }
+.rail-group { margin:20px 12px 4px; font-size:11px; color:var(--muted); }.layout { min-height:75vh; }
+.source-link { display:block;max-width:260px;white-space:normal;overflow-wrap:anywhere; }.history-title { display:block;max-width:240px;white-space:normal;overflow-wrap:anywhere; }.history-detail td { white-space:normal;overflow-wrap:anywhere; }.history-detail .source-link { max-width:none; }.history-detail h1 { margin-top:20px; }
+.history-list table { width:max-content;min-width:100%; }.history-list th,.history-list td { text-align:left;vertical-align:top; }.history-list td { min-width:80px; }.history-list td:first-child { min-width:170px; }.history-list .history-title { min-width:220px; }.history-list .source-link { min-width:220px; }.history-list .status { max-width:240px;white-space:normal;overflow-wrap:anywhere; }.history-detail td { text-align:left; }.history-detail td:first-child { width:180px; }
+.section { margin-top:32px; } .scroll-table { max-width:100%; overflow:auto; } td a { font-weight:600; }
+.account-metrics dd { font-size:22px;overflow-wrap:anywhere; }.status { color:var(--muted); font-size:12px; }.identity { overflow-wrap:anywhere; }.inline { display:flex;gap:12px;align-items:center;flex-wrap:wrap; }
+.button { display:inline-block; text-decoration:none; font-size:14px; } .plan-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px; margin-top:36px; }
+.plan { padding:24px;border-top:2px solid var(--line); background:var(--surface); }.plan h2 { margin-bottom:12px; } .plan dl div { display:flex;justify-content:space-between;gap:16px; padding:12px 0; border-bottom:1px solid var(--line);font-size:13px; }.plan dd { margin:0;text-align:right; }
+.key-form { display:grid;gap:18px;max-width:600px;margin:24px 0; }.key-form input[type=text] { width:100%; }.scopes { display:flex;gap:12px;flex-wrap:wrap; }.scopes label { flex-direction:row;align-items:center; }.scopes input { min-height:0; } code,pre { overflow-wrap:anywhere;white-space:pre-wrap; }.secret { padding:18px;background:var(--surface);border:1px solid var(--line);user-select:all; }
+.pager { display:flex;justify-content:space-between;gap:20px;margin-top:20px; }.account-login { max-width:640px;min-height:55vh; }.account-login .button { margin-top:24px; }
+@media(max-width:850px) { .layout { grid-template-columns:1fr; }.rail { padding:16px 20px;border-right:0;border-bottom:1px solid var(--line); }.rail nav { display:flex;flex-wrap:wrap;gap:4px; }.rail a { padding:8px; }.plan-grid { grid-template-columns:1fr; }.header nav { gap:12px; } }
+`
+export function page(title: AccountMessage, content: string, language = 'en', admin = false, current = '', options: { publicLogin?: boolean; dashboard?: boolean; administrator?: boolean } = {}) {
+  const t = accountTranslator(language)
+  const query = language.startsWith('zh') ? '?lang=zh' : ''
+  const publicLogin = !!options.publicLogin, hasLayout = admin || options.dashboard
+  const link = (href: string, key: AccountMessage) => `<a href="${href}${href.startsWith('/admin') ? '' : query}"${current === href || (['/admin/users', '/admin/downloads'].includes(href) && current.startsWith(href + '/')) ? ' aria-current="page"' : ''}>${esc(t(key))}</a>`
+  const rail = hasLayout ? `<aside class="rail"><nav aria-label="${esc(t('dashboard'))}">${link('/dashboard', 'dashboard')}<a href="/dashboard${query}#usage">${esc(t('usage'))}</a><a href="/dashboard${query}#tasks">${esc(t('tasks'))}</a><a href="/dashboard${query}#subscription">${esc(t('pricing'))}</a><a href="/dashboard${query}#keys">${esc(t('keys'))}</a>${admin || options.administrator ? `<div class="rail-group">${esc(t('admin'))}</div>` + [['/admin', 'overview'], ['/admin/users', 'users'], ['/admin/downloads', 'downloadHistory'], ['/admin/analytics', 'analytics'], ['/admin/operations', 'operations']].map(([href, key]) => link(href, key as AccountMessage)).join('') : ''}</nav></aside>` : ''
+  const login = publicLogin ? `<dialog class="login-dialog" aria-labelledby="login-title" aria-describedby="login-description" data-dashboard="/dashboard${query}" data-unavailable="${esc(t('unavailable'))}" data-error="${esc(t('loginError'))}"><button type="button" class="login-close" data-login-close aria-label="${esc(t('close'))}">×</button><div class="login-mark" aria-hidden="true">↗</div><h2 id="login-title">${esc(t('loginTitle'))}</h2><p id="login-description">${esc(t('loginIntro'))}</p><form action="/account/login${query}" method="post"><button type="submit" class="login-google"><img src="/assets/brand/google.svg" width="20" height="20" alt="">${esc(t('login'))}</button></form><p class="login-error" role="alert" hidden></p><button type="button" class="login-guest" data-login-close>${esc(t('continueGuest'))}</button></dialog>` : ''
+  const accountLink = publicLogin ? `<button type="button" class="account-link" data-login-trigger data-dashboard-label="${esc(t('dashboard'))}">${esc(t('signIn'))}</button>` : link('/dashboard', 'dashboard')
+  return `<!doctype html><html lang="${language.startsWith('zh') ? 'zh-CN' : 'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex, nofollow, noarchive"><title>${esc(t(title))} | Keep Video</title><link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/account/style.css">${publicLogin ? '<link rel="stylesheet" href="/assets/login.css"><script src="/assets/account.js" defer></script>' : ''}</head><body><a class="skip" href="#main">${esc(t(title))}</a><header class="header"><a class="brand" href="/">Keep Video</a><nav>${link(language.startsWith('zh') ? '/zh/app/' : '/app/', 'tool')}${link('/pricing', 'pricing')}${link('/developers', 'developers')}${accountLink}${admin ? '' : `<a href="?lang=${language.startsWith('zh') ? 'en' : 'zh'}" lang="${language.startsWith('zh') ? 'en' : 'zh-CN'}">${language.startsWith('zh') ? 'English' : '中文'}</a>`}</nav></header>${hasLayout ? '<div class="layout">' + rail : ''}<main id="main">${content}</main>${hasLayout ? '</div>' : ''}<footer>${esc(t(admin ? 'security' : 'retention'))}</footer>${login}</body></html>`
+}
+export function table(headings: string[], rows: string[][]) {
+  return `<div class="scroll-table" role="region" tabindex="0"><table><thead><tr>${headings.map(heading => `<th scope="col">${esc(heading)}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headings.length}">—</td></tr>`}</tbody></table></div>`
+}

@@ -180,7 +180,6 @@
   "From a link to a file, in three steps.": "D'un lien vers un fichier, en trois étapes.",
   "Loading the online tool…": "Chargement de l'outil en ligne…",
   "No app to install or runtime to set up. Parse a link online, choose a format, then save the result to your phone or computer.": "Aucune application à installer ni runtime à configurer. Analysez un lien en ligne, choisissez un format, puis enregistrez le résultat sur votre téléphone ou votre ordinateur.",
-  "No installation or account is required. The online tool is for public links that do not require sign-in. For sources needing your own login state, use the desktop app on your device.": "Aucune installation ni compte n'est requis. L'outil en ligne est destiné aux liens publics qui ne nécessitent pas de connexion. Pour les sources nécessitant votre propre état de connexion, utilisez l'application de bureau sur votre appareil.",
   "Online video downloader": "Téléchargeur de vidéos en ligne",
   "Only save content you own or have permission to download.": "Enregistrez uniquement le contenu que vous possédez ou que vous avez l’autorisation de télécharger.",
   "Open your browser. Start keeping.": "Ouvrez votre navigateur. Commencez à garder.",
@@ -191,7 +190,6 @@
   "Save video, audio and subtitles online, without installing an app. Paste a public link, choose an available format, then save the finished file to your device.": "Enregistrez de la vidéo, de l'audio et des sous-titres en ligne, sans installer d'application. Collez un lien public, choisissez un format disponible, puis enregistrez le fichier terminé sur votre appareil.",
   "Start right in your browser, or choose the desktop app.": "Commencez directement dans votre navigateur ou choisissez l'application de bureau.",
   "The online form needs JavaScript. Enable it and refresh, or use the desktop app.": "Le formulaire en ligne nécessite JavaScript. Activez-le et actualisez, ou utilisez l'application de bureau.",
-  "The online tool processes files on the server before offering a download to your device. Task history belongs to this browser session. Files are temporary; retention depends on the site configuration.": "L'outil en ligne traite les fichiers sur le serveur avant de proposer un téléchargement sur votre appareil. L'historique des tâches appartient à cette session de navigateur. Les fichiers sont temporaires ; la rétention dépend de la configuration du site.",
   "Use Keep Video in your browser to save video, audio and subtitles from public links. No installation needed. Desktop apps are also available for macOS, Windows and Linux. Source availability varies.": "Utilisez Keep Video dans votre navigateur pour enregistrer la vidéo, l'audio et les sous-titres à partir de liens publics. Aucune installation nécessaire. Les applications de bureau sont également disponibles pour macOS, Windows et Linux. La disponibilité des sources varie.",
   "Use online": "Utiliser en ligne",
   "Use your browser on a phone or computer": "Utilisez votre navigateur sur un téléphone ou un ordinateur",
@@ -315,5 +313,7 @@
   "Video generation API · Nbility AI Gateway": "API de génération vidéo · Nbility AI Gateway",
   "One gateway. More AI possibilities.": "Un seul accès. Plus de possibilités avec l’IA.",
   "Explore APIs": "Explorer les API",
-  "AI model recommendations": "Recommandations de modèles d’IA"
+  "AI model recommendations": "Recommandations de modèles d’IA",
+  "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "Le serveur prépare des fichiers temporaires. Les tâches anonymes appartiennent à cette session. Après connexion, vous pouvez rattacher les tâches invité actuelles et retrouver les résultats non expirés sur vos appareils. La connexion ne prolonge pas leur conservation.",
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "Commencez sans compte ni installation. Un compte facultatif permet de gérer les tâches rattachées et votre utilisation ; l’API nécessite une autorisation bêta. Liens publics uniquement : un compte ou abonnement ne débloque pas les contenus restreints. Utilisez l’application de bureau pour vos cookies."
 }

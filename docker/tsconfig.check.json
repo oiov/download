@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  },
+  "include": ["server/**/*.ts", "web/**/*.ts", "../src/env.d.ts", "../scripts/admin-report.ts", "../scripts/analytics-report.ts"],
+  "references": []
+}

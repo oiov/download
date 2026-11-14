@@ -7,7 +7,7 @@
     "node": ">=22.13.0",
     "pnpm": ">=8"
   },
-  "description": "Keep Video \u2014 YouTube\u3001Bilibili\u3001TikTok\u3001Instagram\u3001Vimeo \u684c\u9762\u89c6\u9891\u4e0b\u8f7d\u5de5\u5177",
+  "description": "Keep Video — YouTube、Bilibili、TikTok、Instagram、Vimeo 桌面视频下载工具",
   "keywords": [
     "video-downloader",
     "yt-dlp",
@@ -24,8 +24,8 @@
     "ffmpeg",
     "aria2",
     "download-manager",
-    "\u89c6\u9891\u4e0b\u8f7d\u5668",
-    "\u65e0\u6c34\u5370\u4e0b\u8f7d"
+    "视频下载器",
+    "无水印下载"
   ],
   "author": {
     "name": "oiov",
@@ -72,7 +72,7 @@
     "website:build": "node scripts/build-website.mjs",
     "website:preview": "node scripts/serve-website.mjs",
     "build:web": "pnpm website:build && vite build --config docker/web/vite.config.ts",
-    "test:web": "node scripts/test-web-sqlite.mjs && node scripts/test-web-server.mjs && node --import tsx scripts/test-web-storage.mjs && node scripts/test-see-server.mjs",
+    "test:web": "vue-tsc -p docker/tsconfig.check.json --noEmit && node scripts/test-web-sqlite.mjs && node scripts/test-web-server.mjs && node --import tsx scripts/test-web-storage.mjs && node scripts/test-see-server.mjs && node --import tsx scripts/test-web-accounts.mjs",
     "start:web": "tsx --tsconfig docker/server/tsconfig.json docker/server/index.ts",
     "analytics:report": "tsx scripts/analytics-report.ts"
   },
@@ -93,10 +93,12 @@
     "@types/node": "^26.6.4",
     "@types/ws": "^8.18.2",
     "@vitejs/plugin-vue": "^6.0.9",
+    "better-auth": "1.7.23",
     "electron": "44.5.1",
     "electron-builder": "^26.15.3",
     "esbuild": "^0.28.2",
     "postcss": "^8.5.28",
+    "stripe": "23.1.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",

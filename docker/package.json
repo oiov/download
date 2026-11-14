@@ -5,12 +5,14 @@
   "engines": {
     "node": ">=22.13.0"
   },
-  "description": "DownVid \u5bb9\u5668\u5316 WebUI \u4e13\u5c5e\u670d\u52a1\u4e0e\u4f9d\u8d56\u914d\u7f6e\uff08\u4e0e\u684c\u9762\u5e94\u7528\u5b8c\u5168\u9694\u79bb\uff09",
+  "description": "DownVid 容器化 WebUI 专属服务与依赖配置（与桌面应用完全隔离）",
   "dependencies": {
-    "tsx": "^4.23.15",
-    "ws": "^8.22.0",
     "@aws-sdk/client-s3": "^3.900.0",
-    "@aws-sdk/lib-storage": "^3.900.0"
+    "@aws-sdk/lib-storage": "^3.900.0",
+    "better-auth": "1.7.23",
+    "stripe": "23.1.0",
+    "tsx": "^4.23.15",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "@types/ws": "^8.18.2"

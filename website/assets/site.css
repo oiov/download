@@ -199,3 +199,10 @@
  .capability-detail,.capability-detail:nth-child(n){border-left:0;padding:22px 0;border-top:1px solid var(--line)}.capability-detail:last-child{padding-bottom:0}
  .capability-detail-mark{margin-bottom:12px}.capability-detail h4{font-size:17px}.capability-detail p{margin-top:8px;font-size:13px}
 }
+
+/* 账户入口与按需扩展说明沿用门户布局，不把注册放在下载流程前。 */
+.account-link{font-size:13px;white-space:nowrap}.account-section{display:flex;gap:48px;justify-content:space-between;align-items:center;border-top:1px solid var(--line)}.account-section>div:first-child{max-width:760px}.account-section h2{font-size:clamp(28px,3.4vw,44px);margin-bottom:18px}.account-section p{font-size:15px;color:var(--muted);line-height:1.8}.account-section .fineprint{font-size:12px;margin-top:14px}.account-actions{display:flex;flex-direction:column;gap:20px;flex-shrink:0}.account-section .text-link{font-size:14px}.header-actions{gap:20px}
+@media(max-width:760px){.account-section{display:block}.account-actions{margin-top:24px;align-items:flex-start}.account-link{font-size:12px}.header-actions{gap:12px}.header .nav-download{padding-inline:12px}}
+@media(max-width:380px){.header{padding-inline:4%}.header-actions{gap:8px}.header .brand{font-size:18px;gap:6px}.header .brand-icon{width:24px;height:24px}.header .nav-download{padding-inline:8px;font-size:11px}.account-link{font-size:11px}}
+.account-link{display:inline-flex;align-items:center;min-height:44px;font-weight:600}
+@media(max-width:380px){.header .brand{font-size:0;gap:0}.header .brand-icon{width:28px;height:28px}}

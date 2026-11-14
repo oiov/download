@@ -3,6 +3,7 @@ import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { readAnalyticsReport } from '../docker/server/analytics-reader'
 import { sourceCategory } from '../shared/web-analytics'
+import { exportReport } from '../docker/server/report-export'
 
 const { values: args } = parseArgs({ options: {
   dir: { type: 'string', default: path.join(process.env.DOWNVID_DATA_DIR || 'data/userdata', 'analytics') },
@@ -71,18 +72,4 @@ if (args.umami) {
 }
 const result = { ...report, reader, umami }
 if (args.format === 'json') console.log(JSON.stringify(result, null, 2))
-else {
-  const flat: [string, string][] = []
-  function flatten(value: any, prefix = '') {
-    if (Array.isArray(value)) value.forEach((entry, index) => flatten(entry, prefix + '.' + index))
-    else if (value && typeof value === 'object') for (const [key, entry] of Object.entries(value)) flatten(entry, prefix ? prefix + '.' + key : key)
-    else flat.push([prefix, value === null ? '未知/无法计算' : String(value)])
-  }
-  flatten(result)
-  if (args.format === 'csv') {
-    const quote = (value: string) => '"' + (/^[=+@-]/.test(value) ? "'" : '') + value.replaceAll('"', '""') + '"'
-    console.log('metric,value\n' + flat.map(row => row.map(quote).join(',')).join('\n'))
-  } else {
-    console.log('# Keep Video 下载漏斗日报\n\n服务端事件口径，非计费账本；空值不等于零。\n\n| 指标 | 值 |\n| --- | --- |\n' + flat.map(([key, value]) => '| ' + key + ' | ' + value.replaceAll('|', '\\|').replaceAll('\n', ' ') + ' |').join('\n'))
-  }
-}
+else console.log(exportReport(result, args.format as 'markdown' | 'csv'))

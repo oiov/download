@@ -17,7 +17,7 @@
   "Availability depends on the website and video. Automatic captions can contain errors, especially in names, numbers and overlapping speech. Missing languages are not automatically generated.": "A disponibilidade depende do site e do vídeo. As legendas automáticas podem conter erros, principalmente em nomes, números e fala sobreposta. Os idiomas ausentes não são gerados automaticamente.",
   "BILIBILI GUIDE": "GUIA BILIBILI",
   "Beyond a bookmark.<br><span>A local copy to keep.</span>": "Mais que um favorito.<br><span>Uma cópia no seu computador.</span>",
-  "Breadcrumb": "Pão ralado",
+  "Breadcrumb": "Navegação estrutural",
   "Browser database formats, locks and permissions can affect access. Select the browser where you are signed in and follow the permission guidance. If needed, import your own exported cookies and refresh them when they expire.": "Formatos de banco de dados do navegador, bloqueios e permissões podem afetar o acesso. Selecione o navegador onde você está conectado e siga as orientações de permissão. Se necessário, importe seus próprios cookies exportados e atualize-os quando expirarem.",
   "Built on DownVid / Videdown": "Construído em DownVid / Videdown",
   "Can I download a video on this website?": "Posso baixar um vídeo neste site?",
@@ -70,7 +70,7 @@
   "Go to downloads": "Ir para downloads",
   "Good things are worth keeping.": "O que é bom merece ser guardado.",
   "Guides": "Guias",
-  "Home": "Lar",
+  "Home": "Início",
   "How to download video subtitles as SRT": "Como baixar legendas de vídeo como SRT",
   "How to save audio from a video as MP3": "Como salvar o áudio de um vídeo como MP3",
   "INSTAGRAM GUIDE": "GUIA INSTAGRAM",
@@ -180,7 +180,6 @@
   "From a link to a file, in three steps.": "De um link para um arquivo, em três etapas.",
   "Loading the online tool…": "Carregando a ferramenta on-line…",
   "No app to install or runtime to set up. Parse a link online, choose a format, then save the result to your phone or computer.": "Nenhum aplicativo para instalar ou tempo de execução para configurar. Analise um link online, escolha um formato e salve o resultado em seu telefone ou computador.",
-  "No installation or account is required. The online tool is for public links that do not require sign-in. For sources needing your own login state, use the desktop app on your device.": "Nenhuma instalação ou conta é necessária. A ferramenta online é para links públicos que não exigem login. Para fontes que precisam de seu próprio estado de login, use o aplicativo de desktop no seu dispositivo.",
   "Online video downloader": "Downloader de vídeos online",
   "Only save content you own or have permission to download.": "Salve apenas conteúdo de sua propriedade ou que tenha permissão para baixar.",
   "Open your browser. Start keeping.": "Abra seu navegador. Comece a guardar.",
@@ -191,7 +190,6 @@
   "Save video, audio and subtitles online, without installing an app. Paste a public link, choose an available format, then save the finished file to your device.": "Salve vídeo, áudio e legendas online, sem instalar um aplicativo. Cole um link público, escolha um formato disponível e salve o arquivo finalizado em seu dispositivo.",
   "Start right in your browser, or choose the desktop app.": "Comece diretamente no seu navegador ou escolha o aplicativo de desktop.",
   "The online form needs JavaScript. Enable it and refresh, or use the desktop app.": "O formulário online precisa de JavaScript. Ative-o e atualize ou use o aplicativo de desktop.",
-  "The online tool processes files on the server before offering a download to your device. Task history belongs to this browser session. Files are temporary; retention depends on the site configuration.": "A ferramenta online processa os arquivos no servidor antes de oferecer o download para o seu dispositivo. O histórico de tarefas pertence a esta sessão do navegador. Os arquivos são temporários; a retenção depende da configuração do site.",
   "Use Keep Video in your browser to save video, audio and subtitles from public links. No installation needed. Desktop apps are also available for macOS, Windows and Linux. Source availability varies.": "Use Keep Video em seu navegador para salvar vídeo, áudio e legendas de links públicos. Nenhuma instalação necessária. Os aplicativos de desktop também estão disponíveis para macOS, Windows e Linux. A disponibilidade da fonte varia.",
   "Use online": "Usar online",
   "Use your browser on a phone or computer": "Use seu navegador em um telefone ou computador",
@@ -315,5 +313,7 @@
   "Video generation API · Nbility AI Gateway": "API de geração de vídeo · Nbility AI Gateway",
   "One gateway. More AI possibilities.": "Um só acesso. Mais possibilidades com IA.",
   "Explore APIs": "Explorar APIs",
-  "AI model recommendations": "Recomendações de modelos de IA"
+  "AI model recommendations": "Recomendações de modelos de IA",
+  "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "O servidor prepara arquivos temporários para seu dispositivo. As tarefas anônimas pertencem a esta sessão. Ao entrar, você pode vincular as tarefas atuais e acessar resultados válidos em outros dispositivos. O login não prolonga a validade.",
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "Comece sem cadastro nem instalação. A conta opcional permite gerenciar tarefas vinculadas e uso; a API exige aprovação beta. Apenas links públicos: conta ou assinatura não desbloqueia conteúdo restrito. Use o aplicativo de desktop para seus próprios cookies."
 }

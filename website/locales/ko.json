@@ -180,7 +180,6 @@
   "From a link to a file, in three steps.": "링크에서 파일까지 3단계로 진행됩니다.",
   "Loading the online tool…": "온라인 도구 로드 중…",
   "No app to install or runtime to set up. Parse a link online, choose a format, then save the result to your phone or computer.": "설치할 앱이나 설정할 런타임이 없습니다. 온라인으로 링크를 분석하고 형식을 선택한 다음 결과를 휴대폰이나 컴퓨터에 저장하세요.",
-  "No installation or account is required. The online tool is for public links that do not require sign-in. For sources needing your own login state, use the desktop app on your device.": "설치나 계정이 필요하지 않습니다. 온라인 도구는 로그인이 필요하지 않은 공개 링크용입니다. 자신만의 로그인 상태가 필요한 소스의 경우 기기의 데스크톱 앱을 사용하세요.",
   "Online video downloader": "온라인 동영상 다운로더",
   "Only save content you own or have permission to download.": "귀하가 소유하거나 다운로드 권한이 있는 콘텐츠만 저장하세요.",
   "Open your browser. Start keeping.": "브라우저를 엽니다. 보관을 시작하세요.",
@@ -191,7 +190,6 @@
   "Save video, audio and subtitles online, without installing an app. Paste a public link, choose an available format, then save the finished file to your device.": "앱을 설치하지 않고도 비디오, 오디오, 자막을 온라인으로 저장할 수 있습니다. 공개 링크를 붙여넣고 사용 가능한 형식을 선택한 다음 완성된 파일을 장치에 저장하세요.",
   "Start right in your browser, or choose the desktop app.": "브라우저에서 바로 시작하거나 데스크톱 앱을 선택하세요.",
   "The online form needs JavaScript. Enable it and refresh, or use the desktop app.": "온라인 양식에는 JavaScript가 필요합니다. 활성화하고 새로 고치거나 데스크톱 앱을 사용하세요.",
-  "The online tool processes files on the server before offering a download to your device. Task history belongs to this browser session. Files are temporary; retention depends on the site configuration.": "온라인 도구는 장치에 다운로드를 제공하기 전에 서버의 파일을 처리합니다. 작업 기록은 이 브라우저 세션에 속합니다. 파일은 일시적입니다. 보존 기간은 사이트 구성에 따라 다릅니다.",
   "Use Keep Video in your browser to save video, audio and subtitles from public links. No installation needed. Desktop apps are also available for macOS, Windows and Linux. Source availability varies.": "공개 링크의 비디오, 오디오, 자막을 저장하려면 브라우저에서 Keep Video를 사용하세요. 설치가 필요하지 않습니다. 데스크탑 앱은 macOS, Windows 및 Linux에서도 사용할 수 있습니다. 소스 가용성은 다양합니다.",
   "Use online": "온라인 사용",
   "Use your browser on a phone or computer": "휴대전화나 컴퓨터에서 브라우저를 사용하세요.",
@@ -315,5 +313,7 @@
   "Video generation API · Nbility AI Gateway": "영상 생성 API · Nbility AI 게이트웨이",
   "One gateway. More AI possibilities.": "하나의 창구로 다양한 AI 모델을 만나보세요.",
   "Explore APIs": "API 살펴보기",
-  "AI model recommendations": "AI 모델 추천"
+  "AI model recommendations": "AI 모델 추천",
+  "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "서버가 기기에 저장할 임시 파일을 준비합니다. 익명 작업은 현재 브라우저 세션에 속합니다. 로그인 후 현재 게스트 작업을 연결하고 유효한 결과를 다른 기기에서 확인할 수 있습니다. 로그인해도 보관 기간은 늘어나지 않습니다.",
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "설치나 가입 없이 시작하세요. 선택 사항인 계정으로 연결한 작업과 사용량을 관리할 수 있으며 API는 베타 승인이 필요합니다. 공개 링크만 지원하며 계정이나 구독이 제한된 콘텐츠를 해제하지 않습니다. 개인 쿠키는 데스크톱 앱에서 사용하세요."
 }

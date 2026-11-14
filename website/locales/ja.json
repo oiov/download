@@ -180,7 +180,6 @@
   "From a link to a file, in three steps.": "リンクからファイルへは 3 つのステップで完了します。",
   "Loading the online tool…": "オンライン ツールを読み込んでいます…",
   "No app to install or runtime to set up. Parse a link online, choose a format, then save the result to your phone or computer.": "アプリをインストールしたり、ランタイムをセットアップしたりする必要はありません。オンラインでリンクを解析し、形式を選択して、結果を携帯電話またはコンピュータに保存します。",
-  "No installation or account is required. The online tool is for public links that do not require sign-in. For sources needing your own login state, use the desktop app on your device.": "インストールやアカウントは必要ありません。このオンライン ツールは、サインインを必要としないパブリック リンク用です。独自のログイン状態が必要なソースの場合は、デバイス上のデスクトップ アプリを使用してください。",
   "Online video downloader": "オンライン動画ダウンローダー",
   "Only save content you own or have permission to download.": "自分が所有するコンテンツ、またはダウンロードの許可を持っているコンテンツのみを保存してください。",
   "Open your browser. Start keeping.": "ブラウザを開きます。飼い始めます。",
@@ -191,7 +190,6 @@
   "Save video, audio and subtitles online, without installing an app. Paste a public link, choose an available format, then save the finished file to your device.": "アプリをインストールしなくても、ビデオ、オーディオ、字幕をオンラインで保存できます。公開リンクを貼り付け、利用可能な形式を選択して、完成したファイルをデバイスに保存します。",
   "Start right in your browser, or choose the desktop app.": "ブラウザで直接開始するか、デスクトップ アプリを選択します。",
   "The online form needs JavaScript. Enable it and refresh, or use the desktop app.": "オンラインフォームにはJavaScriptが必要です。有効にして更新するか、デスクトップ アプリを使用します。",
-  "The online tool processes files on the server before offering a download to your device. Task history belongs to this browser session. Files are temporary; retention depends on the site configuration.": "オンライン ツールは、デバイスへのダウンロードを提供する前に、サーバー上のファイルを処理します。タスク履歴はこのブラウザ セッションに属します。ファイルは一時的なものです。 retention depends on the site configuration.",
   "Use Keep Video in your browser to save video, audio and subtitles from public links. No installation needed. Desktop apps are also available for macOS, Windows and Linux. Source availability varies.": "ブラウザで Keep Video を使用して、公開リンクからビデオ、オーディオ、字幕を保存します。インストールは必要ありません。デスクトップ アプリは、macOS、Windows、Linux でも利用できます。ソースの入手可能性はさまざまです。",
   "Use online": "オンラインで使う",
   "Use your browser on a phone or computer": "Use your browser on a phone or computer",
@@ -315,5 +313,7 @@
   "Video generation API · Nbility AI Gateway": "動画生成 API · Nbility AI ゲートウェイ",
   "One gateway. More AI possibilities.": "ひとつの窓口で、多彩な AI モデルへ。",
   "Explore APIs": "API を見る",
-  "AI model recommendations": "AI モデルのおすすめ"
+  "AI model recommendations": "AI モデルのおすすめ",
+  "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "サーバーで一時ファイルを作成します。匿名タスクはこのブラウザーのセッションに属します。ログイン後に現在のゲストタスクを引き継ぎ、有効期限内の結果を別の端末で確認できます。保存期間は延長されません。",
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "インストールや登録なしで開始できます。任意のアカウントで引き継いだタスクと使用量を管理でき、API はベータ参加承認が必要です。公開リンクのみ対応し、アカウントや有料プランで制限コンテンツは解除されません。独自の Cookie はデスクトップ版で使用してください。"
 }

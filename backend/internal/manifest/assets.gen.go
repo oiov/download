@@ -8,10 +8,10 @@ package manifest
 import rt "github.com/yxxbc/downvid/backend/internal/runtime"
 
 // YtDlpTag yt-dlp nightly 构建的固定 tag（日期版本号）
-const YtDlpTag = "2026.10.26.220202"
+const YtDlpTag = "2026.11.04.232659"
 
 // YtDlpZipappSHA256 容器使用的 Python zipapp 校验值，与桌面独立二进制不同。
-const YtDlpZipappSHA256 = "76d70df873f95faded42e585756b656c5a8fe4cc38768427330e099b74f2807b"
+const YtDlpZipappSHA256 = "21f87ead735de22248806d9a55202eefbff98da25ed3a054ee03ae55878920ac"
 
 // FFmpegTag ffmpeg-static 的固定 tag
 const FFmpegTag = "b6.1.1"
@@ -23,11 +23,11 @@ const (
 
 // ytdlpAssets yt-dlp 在各平台的产物与 SHA-256
 var ytdlpAssets = map[string]asset{
-	"darwin/arm64": {"yt-dlp_macos", "13b01617c8e8fe9ec89cc063eb8fc015667562f837289ded70d8fc680646df1c"},
-	"darwin/x64":   {"yt-dlp_macos", "13b01617c8e8fe9ec89cc063eb8fc015667562f837289ded70d8fc680646df1c"},
-	"linux/x64":    {"yt-dlp_linux", "11b0b30386a9dd8492673aec3b3523b7227645ab728e40fa98e5ff8151a4512d"},
-	"linux/arm64":  {"yt-dlp_linux_aarch64", "8d814478ed25279f3a8ca0cdabc74a016f6567c99925d77fdd016808b8bced0b"},
-	"win32/x64":    {"yt-dlp.exe", "7feb61f939dec5003683df14c407750f8b47f1c17dc9a1d6fcd1efd1f2b1857e"},
+	"darwin/arm64": {"yt-dlp_macos", "986ed6a7b6d88c8772338da35dd8798a83a503a555370adfa4ff3f542e4daaff"},
+	"darwin/x64":   {"yt-dlp_macos", "986ed6a7b6d88c8772338da35dd8798a83a503a555370adfa4ff3f542e4daaff"},
+	"linux/x64":    {"yt-dlp_linux", "16e96c02ffefd0bd1fe8ae6cc943b16c96e575c29eed7038d15213034437bc34"},
+	"linux/arm64":  {"yt-dlp_linux_aarch64", "2bb887bf70ddef81b3f1c2cf7fd200fe1a91aeecaedca74f2d64b219ebca0212"},
+	"win32/x64":    {"yt-dlp.exe", "85c8d440422108bee7ecd11e584d56cc04fb3bd1a0b3200bdc8a66d5c5a985fc"},
 }
 
 // ffmpegAssets ffmpeg / ffprobe 在各平台的产物与 SHA-256。

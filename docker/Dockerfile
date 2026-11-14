@@ -14,6 +14,7 @@ ARG SITE_URL=https://keep.video
 RUN pnpm build:web
 RUN pnpm exec esbuild docker/server/index.ts --bundle --platform=node --format=esm --packages=external --alias:electron=./docker/server/electron-shim.ts --outfile=/app/server.mjs
 RUN pnpm exec esbuild scripts/analytics-report.ts --bundle --platform=node --format=esm --outfile=/app/analytics-report.mjs
+RUN pnpm exec esbuild scripts/admin-report.ts --bundle --platform=node --format=esm --outfile=/app/admin-report.mjs
 FROM node:22-bookworm-slim
 # 使用 Node 22.13+ 内置 SQLite；不安装第三方原生数据库模块。
 COPY --from=backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
@@ -34,6 +35,7 @@ RUN npm ci --omit=dev --ignore-scripts
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/server.mjs ./server.mjs
 COPY --from=build /app/analytics-report.mjs ./analytics-report.mjs
+COPY --from=build /app/admin-report.mjs ./admin-report.mjs
 COPY --from=build /app/website/dist ./website/dist
 COPY --from=build /app/docker/dist-web ./docker/dist-web
 COPY --from=backend /downvid-deps ./backend/build/downvid-deps

@@ -492,5 +492,10 @@ CHANGELOG 用 `## [Unreleased]` 段落累积改动。发布时再一次性改成
 - Web 使用 Node 22.13+ 内置 SQLite：`docker/server/state.ts` 保存会话、逐条任务及额度；`docker/server/analytics-store.ts` 使用独立统计库，故障不得阻断下载。数据库放本地持久化卷，不能放 R2／共享网络盘；当前仍只支持单实例调度。
 - 旧业务 JSON 在同一事务中一次性导入，旧统计 JSONL 按文件与行号幂等导入；保留原件，原始统计仍按保留期清理。迁移后不双写 JSON，降级到旧文件版必须恢复同批次卷备份，不能只换镜像。热备不得仅复制主数据库而丢掉 WAL。
 - `docker/server/analytics-reader.ts` 使用只读快照、SQL 去重与关联实体查询；不得只按报表窗口截断跨日终态或更早起点。`scripts/test-web-sqlite.mjs` 已并入 pnpm test:web，三个平台现有 integration job 均执行；新增测试仍须做变异反证。
-- 私有统计页 `/see` 由 `docker/server/see.ts` 在公共路由前处理；服务端 `SEE_PASSWORD` 为空时全部关闭，非本地启用必须 HTTPS。页面与聚合 JSON 共用独立 HttpOnly 会话，不能复用访客下载 Cookie；POST 校验 Origin，登录限流。所有响应禁缓存、禁索引，HTML 同时带 robots meta，不加入公开导航或 sitemap。
-- `/see` 复用独立 CLI 子进程生成报表，保持只读、单查询并发、短期有界缓存与超时，停服等待查询终止；不得改为主事件循环同步读库或开放任意 SQL、路径及业务数据库。私有页面词条为 `src/i18n/see.ts`，不引入客户端脚本或遥测；`scripts/test-see-server.mjs` 随 pnpm test:web 在三平台运行，含变异反证。
+- Web 账户由 `docker/server/auth.ts` 使用 Better Auth 与业务 SQLite 提供，Google 登录可选；匿名下载继续可用。`platform-store.ts` 将访客映射到稳定主体，任务认领必须由当前已验证访客确认，并在事务中迁移任务和用量、撤销旧访客访问，不能按任意 guestId 认领。会话、Key 和账户状态须在请求、事件发送及连接复核时校验。
+- 登录入口使用原页弹框，成功进入受保护的 `/dashboard`；普通用户与管理员共用面板布局，只有管理员侧栏显示管理模块，页面与接口仍逐次鉴权。管理员入口为 `/admin`，原 `/see` 跳转 `/admin/analytics`；旧密码登录已删除。`ADMIN_USER_IDS` 显式绑定稳定账户，邮箱引导授权首次绑定后不得转授新主体；普通下载 Key 不授予管理权。用户列表和详情展示任务次数、成功成品字节和交付流量，不展示视频地址、标题、路径或凭据。所有管理响应禁缓存、禁索引，不加入公开导航或 sitemap。
+- 下载聚合继续由 `see-report.ts` 的独立只读 CLI 生成；用户和运行诊断通过 `admin-reports.ts` 的只读有时限子进程查询。保留单查询并发、有界缓存和停服等待，不开放任意 SQL、路径或原始数据库。`src/i18n/see.ts`、`src/i18n/account.ts` 为独立词条，不引入私有页面遥测。
+- `/api/v1/` 内测、网页共用任务服务与主体额度；Key 只存散列、明文仅创建时显示。任务、次数／字节预留与账户范围幂等记录须同事务提交；文件交付校验归属、期限和 scope，保留 Range。业务用量不会随文件过期删除；中断交付保留未确认预留，不能靠重启恢复流量额度。
+- Stripe Checkout／Portal 仅在服务端配置完整时启用；签名通知防重放并重新读取上游当前订阅，支付返回页不能直接授予权益。凭据只留服务端，MCP 本轮不实施。迁移、额度、权限与支付配置见 `docs/accounts-and-billing.md`；`scripts/test-web-accounts.mjs` 和服务端／Web 类型检查并入 pnpm test:web，沿用三平台 integration job，新增安全分支须有变异反证。
+
+- 按用户授权新增 `/admin/downloads` 全站下载历史与详情，允许管理员查看标题和清洗后的公开来源链接；不展示凭据、签名查询串、服务器路径或原始错误。`download-history.ts` 独立迁移并与任务原子保存，认领同步归属，文件清理不删历史；`DOWNLOAD_HISTORY_RETENTION_DAYS` 默认 90 天。环境变量完整模板和填写说明见 `docker/.env.example` 与 `docs/environment-variables.md`。

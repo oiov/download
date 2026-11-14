@@ -31,18 +31,23 @@ function stateChecks(sources = {}) {
     assert.equal(store.db.prepare('PRAGMA journal_mode').get().journal_mode, 'wal')
     assert.equal(store.db.prepare('PRAGMA synchronous').get().synchronous, 2, '业务额度要求 FULL 同步提交')
     assert.equal(store.session(owner).analyticsId, analyticsId)
+    const principal = store.session(owner).principalId
+    const otherPrincipal = store.allJobs().find(job => job.id === 'two').owner
+    assert.match(principal, /^g:/, '任务归属必须独立于会话凭据')
+    assert.notEqual(principal, owner)
     assert.equal(store.session(other), undefined)
     assert.equal(store.allJobs().length, 2)
-    assert.equal(store.jobsForOwner(owner).length, 1)
+    assert.equal(store.jobsForOwner(principal).length, 1)
+    assert.equal(store.jobsForOwner(owner).length, 0, '旧凭据不能直接作为 owner')
     assert.equal(store.db.prepare('SELECT COUNT(*) AS n FROM quota').get().n, 2)
     for (const [name, value] of Object.entries(files)) assert.equal(fs.readFileSync(path.join(dir, name), 'utf8'), JSON.stringify(value), '迁移不得改写原件')
-    assert.throws(() => store.insertJob({ ...fixtureJob('duplicate'), clientId: 'one' }), /UNIQUE/, '幂等键由数据库约束')
-    store.saveJob({ ...fixtureJob(), status: 'error' })
-    assert.equal(store.findJob(owner, 'one').status, 'error')
-    assert.equal(store.findJob(other, 'two').status, 'completed', '只更新一个任务')
-    store.removeJob('one', other)
-    assert.ok(store.findJob(owner, 'one'), '不能删除其他会话任务')
-    store.removeJob('one', owner)
+    assert.throws(() => store.insertJob({ ...fixtureJob('duplicate', principal), clientId: 'one' }), /UNIQUE/, '幂等键由数据库约束')
+    store.saveJob({ ...fixtureJob('one', principal), status: 'error' })
+    assert.equal(store.findJob(principal, 'one').status, 'error')
+    assert.equal(store.findJob(otherPrincipal, 'two').status, 'completed', '只更新一个任务')
+    store.removeJob('one', otherPrincipal)
+    assert.ok(store.findJob(principal, 'one'), '不能删除其他会话任务')
+    store.removeJob('one', principal)
     store.cleanupSessions()
     store.close()
     store = new StateStore(dir)
@@ -124,11 +129,16 @@ async function recoveryChecks(sources = {}) {
     jobs = new Jobs(config, '', analytics)
     assert.equal(jobs.jobs.get('pending').errorCode, 'interrupted')
     assert.equal(events.filter(name => name === 'job_finished').length, 1)
+    jobs.platform.reserveDelivery('fixture-owner', 100)
     await jobs.close()
     jobs = new Jobs(config, '', analytics)
+    assert.equal(jobs.platform.usage('fixture-owner').deliveredBytes, 0, '崩溃前未确认的流量不能冒充实际交付')
+    assert.equal(jobs.platform.usage('fixture-owner').uncertainDeliveryBytes, 100, '重启后仍保留未确认交付的预留')
+    assert.equal(jobs.platform.usage('fixture-owner').deliveryReservedBytes, 100, '不能靠重启恢复流量额度')
     assert.equal(events.filter(name => name === 'job_finished').length, 1, '重启修复必须持久化，不能每次重启再记录终态')
-    assert.equal(jobs.submit(owner, { taskId: 'pending' }).errorCode, 'interrupted', '重启后重放不能再次创建或扣额')
-    assert.equal(jobs.submit(owner, { taskId: 'one' }).status, 'completed')
+    const principal = jobs.jobs.get('pending').owner
+    assert.equal(jobs.submit(principal, { taskId: 'pending' }).errorCode, 'interrupted', '重启后重放不能再次创建或扣额')
+    assert.equal(jobs.submit(principal, { taskId: 'one' }).status, 'completed')
     assert.equal(jobs.state.db.prepare('SELECT COUNT(*) AS n FROM quota').get().n, 0)
     assert.equal(jobs.list(other).length, 0)
   } finally { await jobs?.close(); fs.rmSync(dir, { recursive: true, force: true }) }
@@ -285,6 +295,7 @@ for (const [file, before, after, check] of [
   ['docker/server/state.ts', 'UNIQUE(owner, client_id)', 'UNIQUE(owner, id)', stateChecks],
   ['docker/server/sqlite.ts', "try { db.exec('ROLLBACK') }", "try { db.exec('COMMIT') }", rollbackChecks],
   ['docker/server/jobs.ts', 'this.state.saveJob(job)', 'void 0', recoveryChecks],
+  ['docker/server/jobs.ts', "SET status = 'uncertain' WHERE kind = 'delivery'", "SET status = 'uncertain', reserved = 0 WHERE kind = 'delivery'", recoveryChecks],
   ['docker/server/jobs.ts', 'try { this.persist(job) }', 'try { void 0 }', startFailureChecks],
   ['docker/server/analytics-store.ts', 'payload, file, line)', 'payload, null, null)', analyticsMigrationChecks],
   ['docker/server/analytics-reader.ts', 'OR entity_id IN (SELECT entity_id FROM entities)', '', reportChecks],
@@ -292,4 +303,4 @@ for (const [file, before, after, check] of [
   const source = fs.readFileSync(file, 'utf8'); assert.ok(source.includes(before))
   await assert.rejects(async () => check({ [file]: source.replace(before, after) }), 'SQLite 变异必须被回归拦住：' + before)
 }
-console.log('通过：SQLite 迁移/回滚/权限/并发额度/重启恢复/容量/故障隔离、36 组报表等价及 6 个变异反证')
+console.log('通过：SQLite 迁移/回滚/权限/并发额度/重启恢复/容量/故障隔离、36 组报表等价及 7 个变异反证')

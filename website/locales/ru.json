@@ -180,7 +180,6 @@
   "From a link to a file, in three steps.": "От ссылки к файлу за три шага.",
   "Loading the online tool…": "Загрузка онлайн-инструмента…",
   "No app to install or runtime to set up. Parse a link online, choose a format, then save the result to your phone or computer.": "Нет приложения для установки или среды выполнения, которую нужно настроить. Разберите ссылку онлайн, выберите формат и сохраните результат на телефон или компьютер.",
-  "No installation or account is required. The online tool is for public links that do not require sign-in. For sources needing your own login state, use the desktop app on your device.": "Никакой установки или учетной записи не требуется. Онлайн-инструмент предназначен для общедоступных ссылок, не требующих входа в систему. Для источников, которым требуется собственное состояние входа, используйте настольное приложение на своем устройстве.",
   "Online video downloader": "Онлайн-загрузчик видео",
   "Only save content you own or have permission to download.": "Сохраняйте только тот контент, которым вы владеете или имеете разрешение на загрузку.",
   "Open your browser. Start keeping.": "Откройте браузер. Начни хранить.",
@@ -191,7 +190,6 @@
   "Save video, audio and subtitles online, without installing an app. Paste a public link, choose an available format, then save the finished file to your device.": "Сохраняйте видео, аудио и субтитры онлайн, не устанавливая приложение. Вставьте общедоступную ссылку, выберите доступный формат и сохраните готовый файл на свое устройство.",
   "Start right in your browser, or choose the desktop app.": "Начните прямо в браузере или выберите настольное приложение.",
   "The online form needs JavaScript. Enable it and refresh, or use the desktop app.": "Для онлайн-формы требуется JavaScript. Включите его и обновите или используйте настольное приложение.",
-  "The online tool processes files on the server before offering a download to your device. Task history belongs to this browser session. Files are temporary; retention depends on the site configuration.": "Онлайн-инструмент обрабатывает файлы на сервере, прежде чем предлагать загрузку на ваше устройство. История задач принадлежит этому сеансу браузера. Файлы являются временными; срок хранения зависит от конфигурации сайта.",
   "Use Keep Video in your browser to save video, audio and subtitles from public links. No installation needed. Desktop apps are also available for macOS, Windows and Linux. Source availability varies.": "Используйте Keep Video в своем браузере, чтобы сохранять видео, аудио и субтитры по общедоступным ссылкам. Никакой установки не требуется. Настольные приложения также доступны для macOS, Windows и Linux. Доступность источника варьируется.",
   "Use online": "Открыть онлайн",
   "Use your browser on a phone or computer": "Используйте браузер на телефоне или компьютере",
@@ -315,5 +313,7 @@
   "Video generation API · Nbility AI Gateway": "API генерации видео · Nbility AI Gateway",
   "One gateway. More AI possibilities.": "Единый доступ к разным моделям ИИ.",
   "Explore APIs": "Обзор API",
-  "AI model recommendations": "Рекомендации моделей ИИ"
+  "AI model recommendations": "Рекомендации моделей ИИ",
+  "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "Сервер готовит временные файлы. Анонимные задачи принадлежат текущему сеансу браузера. После входа можно привязать текущие гостевые задачи и открывать действующие результаты на других устройствах. Срок хранения не продлевается.",
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "Начните без регистрации и установки. Аккаунт позволяет управлять привязанными задачами и использованием; API требует допуска к бета-тесту. Только общедоступные ссылки: аккаунт и подписка не открывают закрытый контент. Для собственных cookies используйте настольное приложение."
 }

@@ -63,9 +63,11 @@ try {
   assert(ready, output)
   for (const route of ['/see', '/see/report.json']) {
     const privatePage = await request(route)
-    assert.equal(privatePage.status, 404, '未配置看板密码时保持关闭')
+    assert.equal(privatePage.status, 303, '旧统计入口迁移到管理员页面')
+    assert.match(privatePage.headers.get('location'), /^\/admin\/analytics/)
     assert.match(privatePage.headers.get('x-robots-tag'), /noindex/)
   }
+  assert.equal((await request('/admin/analytics')).status, 401, '管理员页面必须使用账户鉴权')
   assert.match(await (await request('/')).text(), /portal/)
   assert.equal((await request('/missing')).status, 404)
   assert.equal((await request('/app')).headers.get('location'), '/app/')
@@ -366,7 +368,7 @@ async function lifecycleChecks(sources = {}) {
     },
     'docker/server/storage.ts': { createStorage: () => ({ save: async () => ({ key: 'test', name: 'test.mp4', size: 10, driver: 'local' }), remove: async () => {} }) },
   }, { URL, setInterval, clearInterval }, sources)
-  const config = { ...load('docker/server/config.ts').readConfig({}), dataDir: dir, workDir: path.join(dir, 'work'), concurrency: 1 }
+  const config = { ...load('docker/server/config.ts').readConfig({ MAX_FILE_MB: '1' }), dataDir: dir, workDir: path.join(dir, 'work'), concurrency: 1 }
   const { Jobs } = load('docker/server/jobs.ts')
   const jobs = new Jobs(config, '', { record: (name, context, fields, id) => events.push({ name, context, fields, id }) })
   const url = 'https://example.com/private?token=secret'
@@ -540,10 +542,10 @@ await accessChecks()
 for (const [file, before, after, check] of [
   ['docker/server/quota.ts', "db.prepare('INSERT INTO quota VALUES (?, ?, ?)').run(id, action, now)", 'void 0', quotaChecks],
   ['docker/server/quota.ts', 'active.length >= limit', 'false', quotaChecks],
-  ['docker/server/quota.ts', "{ duration: DAY, limit: this.config.parseDailyLimit }", "{ duration: HOUR, limit: this.config.parseDailyLimit }", quotaChecks],
+  ['docker/server/quota.ts', "{ duration: DAY, limit: limits.parses }", "{ duration: HOUR, limit: limits.parses }", quotaChecks],
   ['docker/server/config.ts', "!localOrigin && env.ANALYTICS_ENABLED !== '0'", "false && env.ANALYTICS_ENABLED !== '0'", quotaChecks],
-  ['docker/server/jobs.ts', "this.quota.consume(owner, 'parse')", 'void 0', accessChecks],
-  ['docker/server/jobs.ts', "this.quota.consume(owner, 'download')", 'void 0', accessChecks],
+  ['docker/server/jobs.ts', "this.quota.consume(owner, 'parse', Date.now(), () => this.platform.parse(owner, parseId))", 'this.platform.parse(owner, parseId)', accessChecks],
+  ['docker/server/jobs.ts', "this.quota.consume(owner, 'download', Date.now(), () => { this.state.insertJob(job); this.platform.download(owner, id); commit?.(job) })", 'this.state.insertJob(job); this.platform.download(owner, id); commit?.(job)', accessChecks],
   ['docker/server/jobs.ts', "this.analytics?.record('job_rejected'", "this.analytics?.record('job_created'", accessChecks],
   ['docker/server/jobs.ts', 'restriction && restriction.until > Date.now()', 'false', accessChecks],
 ]) {

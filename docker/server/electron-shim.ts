@@ -36,13 +36,13 @@ export const dialog = {
 
 export const shell = {
   openPath: async () => '',
-  openExternal: async (url: string) => {},
-  showItemInFolder: (path: string) => {},
+  openExternal: async (_url: string) => {},
+  showItemInFolder: (_path: string) => {},
 }
 
 export const clipboard = {
   readText: () => '',
-  writeText: (text: string) => {},
+  writeText: (_text: string) => {},
 }
 
 export const session = {

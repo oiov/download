@@ -5,6 +5,8 @@ import { isOpaqueId } from '../../shared/web-analytics'
 import { WebError } from '../../shared/web-errors'
 import { openDatabase, STATE_DATABASE_ID, transaction } from './sqlite'
 import type { Job } from './jobs'
+import { migratePlatform } from './platform-store'
+import { migrateDownloadHistory, saveDownloadHistory, historyWrite } from './download-history'
 
 const schema = `
   CREATE TABLE migrations (name TEXT PRIMARY KEY);
@@ -40,9 +42,10 @@ function validJob(job: any): job is Job {
 export class StateStore {
   readonly db
   private closed = false
+  private historyReady = false
   constructor(directory: string) {
     this.db = openDatabase(path.join(directory, 'state.sqlite'), STATE_DATABASE_ID, schema)
-    try { this.importLegacy(directory) }
+    try { this.importLegacy(directory); migratePlatform(this.db); migrateDownloadHistory(this.db); this.historyReady = true }
     catch { this.close(); throw new Error('无法迁移业务清单；请检查或恢复备份，不会自动清空会话、任务或额度') }
   }
   private importLegacy(directory: string) {
@@ -83,13 +86,15 @@ export class StateStore {
     })
   }
   session(token: string, now = Date.now()) {
-    return this.db.prepare('SELECT analytics_id AS analyticsId FROM sessions WHERE token = ? AND expires_at > ?').get(token, now) as { analyticsId: string } | undefined
+    return this.db.prepare('SELECT analytics_id AS analyticsId, principal_id AS principalId FROM sessions WHERE token = ? AND expires_at > ?').get(token, now) as { analyticsId: string; principalId: string } | undefined
   }
   createSession(token: string, expiresAt: number, analyticsId: string) {
     transaction(this.db, () => {
       this.cleanupSessions()
       if (Number(this.db.prepare('SELECT COUNT(*) AS n FROM sessions').get()!.n) >= 10000) throw new WebError('busy', '会话数量达到上限')
-      this.db.prepare('INSERT INTO sessions VALUES (?, ?, ?)').run(token, expiresAt, analyticsId)
+      const principal = 'g:' + randomUUID()
+      this.db.prepare('INSERT INTO principals VALUES (?, ?)').run(principal, Date.now())
+      this.db.prepare('INSERT INTO sessions(token,expires_at,analytics_id,principal_id) VALUES (?, ?, ?, ?)').run(token, expiresAt, analyticsId, principal)
     })
   }
   cleanupSessions(now = Date.now()) { this.db.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(now) }
@@ -101,14 +106,24 @@ export class StateStore {
   }
   insertJob(job: Job) {
     const { options: _, ...saved } = job
-    this.db.prepare('INSERT INTO jobs VALUES (?, ?, ?, ?, ?, ?)').run(job.id, job.owner, job.clientId, job.createdAt, job.status, JSON.stringify(saved))
+    const write = () => this.db.prepare('INSERT INTO jobs VALUES (?, ?, ?, ?, ?, ?)').run(job.id, job.owner, job.clientId, job.createdAt, job.status, JSON.stringify(saved))
+    if (!this.historyReady) { write(); return }
+    historyWrite(this.db, () => { write(); saveDownloadHistory(this.db, job) })
   }
   saveJob(job: Job) {
     const { options: _, ...saved } = job
-    const result = this.db.prepare('UPDATE jobs SET created_at = ?, status = ?, payload = ? WHERE id = ? AND owner = ? AND client_id = ?')
-      .run(job.createdAt, job.status, JSON.stringify(saved), job.id, job.owner, job.clientId)
-    if (result.changes !== 1) throw new Error('任务不存在，无法保存')
+    historyWrite(this.db, () => {
+      const result = this.db.prepare('UPDATE jobs SET created_at = ?, status = ?, payload = ? WHERE id = ? AND owner = ? AND client_id = ?')
+        .run(job.createdAt, job.status, JSON.stringify(saved), job.id, job.owner, job.clientId)
+      if (result.changes !== 1) throw new Error('任务不存在，无法保存')
+      saveDownloadHistory(this.db, job)
+    })
   }
-  removeJob(id: string, owner: string) { this.db.prepare('DELETE FROM jobs WHERE id = ? AND owner = ?').run(id, owner) }
+  removeJob(id: string, owner: string) {
+    historyWrite(this.db, () => {
+      const result = this.db.prepare('DELETE FROM jobs WHERE id = ? AND owner = ?').run(id, owner)
+      if (result.changes) this.db.prepare('UPDATE download_history SET removed_at=? WHERE id=? AND owner=?').run(Date.now(), id, owner)
+    })
+  }
   close() { if (!this.closed) { this.db.close(); this.closed = true } }
 }

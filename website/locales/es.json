@@ -180,7 +180,6 @@
   "From a link to a file, in three steps.": "De un enlace a un archivo, en tres pasos.",
   "Loading the online tool…": "Cargando la herramienta en línea…",
   "No app to install or runtime to set up. Parse a link online, choose a format, then save the result to your phone or computer.": "No hay ninguna aplicación que instalar ni tiempo de ejecución que configurar. Analice un enlace en línea, elija un formato y luego guarde el resultado en su teléfono o computadora.",
-  "No installation or account is required. The online tool is for public links that do not require sign-in. For sources needing your own login state, use the desktop app on your device.": "No se requiere instalación ni cuenta. La herramienta en línea es para enlaces públicos que no requieren inicio de sesión. Para fuentes que necesitan su propio estado de inicio de sesión, use la aplicación de escritorio en su dispositivo.",
   "Online video downloader": "Descargador de vídeos en línea",
   "Only save content you own or have permission to download.": "Guarde únicamente el contenido que sea de su propiedad o que tenga permiso para descargar.",
   "Open your browser. Start keeping.": "Abra su navegador. Empiece a guardar.",
@@ -191,7 +190,6 @@
   "Save video, audio and subtitles online, without installing an app. Paste a public link, choose an available format, then save the finished file to your device.": "Guarde videos, audio y subtítulos en línea, sin instalar una aplicación. Pegue un enlace público, elija un formato disponible y luego guarde el archivo terminado en su dispositivo.",
   "Start right in your browser, or choose the desktop app.": "Comience directamente en su navegador o elija la aplicación de escritorio.",
   "The online form needs JavaScript. Enable it and refresh, or use the desktop app.": "El formulario en línea necesita JavaScript. Habilítelo y actualice, o use la aplicación de escritorio.",
-  "The online tool processes files on the server before offering a download to your device. Task history belongs to this browser session. Files are temporary; retention depends on the site configuration.": "La herramienta en línea procesa archivos en el servidor antes de ofrecer una descarga a su dispositivo. El historial de tareas pertenece a esta sesión del navegador. Los archivos son temporales; La retención depende de la configuración del sitio.",
   "Use Keep Video in your browser to save video, audio and subtitles from public links. No installation needed. Desktop apps are also available for macOS, Windows and Linux. Source availability varies.": "Utilice Keep Video en su navegador para guardar videos, audio y subtítulos de enlaces públicos. No se necesita instalación. Las aplicaciones de escritorio también están disponibles para macOS, Windows y Linux. La disponibilidad de fuentes varía.",
   "Use online": "Usar en línea",
   "Use your browser on a phone or computer": "Utilice su navegador en un teléfono o computadora",
@@ -315,5 +313,7 @@
   "Video generation API · Nbility AI Gateway": "API de generación de vídeo · Nbility AI Gateway",
   "One gateway. More AI possibilities.": "Una puerta de entrada a más modelos de IA.",
   "Explore APIs": "Explorar API",
-  "AI model recommendations": "Recomendaciones de modelos de IA"
+  "AI model recommendations": "Recomendaciones de modelos de IA",
+  "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "El servidor prepara archivos temporales para tu dispositivo. Las tareas anónimas pertenecen a esta sesión. Tras iniciar sesión, puedes reclamar las tareas de invitado actuales y acceder a resultados vigentes desde otros dispositivos. Iniciar sesión no amplía su conservación.",
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "Empieza sin cuenta ni instalación. Una cuenta opcional permite gestionar tareas reclamadas y uso; la API requiere aprobación beta. Solo enlaces públicos: una cuenta o suscripción no desbloquea contenido restringido. Usa la aplicación de escritorio para tus propias cookies."
 }

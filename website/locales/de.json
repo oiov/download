@@ -180,7 +180,6 @@
   "From a link to a file, in three steps.": "Vom Link zur Datei in drei Schritten.",
   "Loading the online tool…": "Das Online-Tool wird geladen…",
   "No app to install or runtime to set up. Parse a link online, choose a format, then save the result to your phone or computer.": "Es muss keine App installiert oder die Laufzeit eingerichtet werden. Analysieren Sie einen Link online, wählen Sie ein Format und speichern Sie das Ergebnis dann auf Ihrem Telefon oder Computer.",
-  "No installation or account is required. The online tool is for public links that do not require sign-in. For sources needing your own login state, use the desktop app on your device.": "Es ist keine Installation oder ein Konto erforderlich. Das Online-Tool ist für öffentliche Links gedacht, für die keine Anmeldung erforderlich ist. Für Quellen, die Ihren eigenen Anmeldestatus benötigen, verwenden Sie die Desktop-App auf Ihrem Gerät.",
   "Online video downloader": "Online-Video-Downloader",
   "Only save content you own or have permission to download.": "Speichern Sie nur Inhalte, deren Eigentümer Sie sind oder die Sie herunterladen dürfen.",
   "Open your browser. Start keeping.": "Öffnen Sie Ihren Browser. Fangen Sie an zu behalten.",
@@ -191,7 +190,6 @@
   "Save video, audio and subtitles online, without installing an app. Paste a public link, choose an available format, then save the finished file to your device.": "Speichern Sie Video, Audio und Untertitel online, ohne eine App zu installieren. Fügen Sie einen öffentlichen Link ein, wählen Sie ein verfügbares Format und speichern Sie dann die fertige Datei auf Ihrem Gerät.",
   "Start right in your browser, or choose the desktop app.": "Starten Sie direkt in Ihrem Browser oder wählen Sie die Desktop-App.",
   "The online form needs JavaScript. Enable it and refresh, or use the desktop app.": "Das Online-Formular benötigt JavaScript. Aktivieren Sie es und aktualisieren Sie es oder verwenden Sie die Desktop-App.",
-  "The online tool processes files on the server before offering a download to your device. Task history belongs to this browser session. Files are temporary; retention depends on the site configuration.": "Das Online-Tool verarbeitet Dateien auf dem Server, bevor es einen Download auf Ihr Gerät anbietet. Der Aufgabenverlauf gehört zu dieser Browsersitzung. Dateien sind temporär; Die Aufbewahrung hängt von der Site-Konfiguration ab.",
   "Use Keep Video in your browser to save video, audio and subtitles from public links. No installation needed. Desktop apps are also available for macOS, Windows and Linux. Source availability varies.": "Verwenden Sie „Video behalten“ in Ihrem Browser, um Video, Audio und Untertitel von öffentlichen Links zu speichern. Keine Installation erforderlich. Desktop-Apps sind auch für macOS, Windows und Linux verfügbar. Die Verfügbarkeit der Quellen variiert.",
   "Use online": "Online nutzen",
   "Use your browser on a phone or computer": "Verwenden Sie Ihren Browser auf einem Telefon oder Computer",
@@ -315,5 +313,7 @@
   "Video generation API · Nbility AI Gateway": "Videogenerierungs-API · Nbility AI Gateway",
   "One gateway. More AI possibilities.": "Ein Zugang. Mehr Möglichkeiten mit KI.",
   "Explore APIs": "APIs entdecken",
-  "AI model recommendations": "KI-Modellempfehlungen"
+  "AI model recommendations": "KI-Modellempfehlungen",
+  "The server prepares temporary files for your device. Anonymous tasks belong to this browser session. Signed-in users can explicitly claim their current guest tasks and access unexpired results across devices. Signing in does not extend file retention.": "Der Server bereitet temporäre Dateien vor. Anonyme Aufgaben gehören zu dieser Browsersitzung. Nach der Anmeldung kannst du aktuelle Gastaufgaben übernehmen und nicht abgelaufene Ergebnisse geräteübergreifend abrufen. Die Aufbewahrung wird nicht verlängert.",
+  "Start anonymously without installing an app. An optional account lets you manage claimed tasks and usage; the API requires beta approval. Public links only: an account or subscription does not unlock restricted content. For your own source cookies, use the desktop app.": "Starte ohne Konto und Installation. Ein optionales Konto verwaltet übernommene Aufgaben und Nutzung; die API erfordert eine Beta-Freigabe. Nur öffentliche Links: Konto oder Abo entsperren keine Inhalte. Eigene Cookies nutzt du in der Desktop-App."
 }
