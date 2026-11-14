@@ -74,7 +74,13 @@
     "build:web": "pnpm website:build && vite build --config docker/web/vite.config.ts",
     "test:web": "vue-tsc -p docker/tsconfig.check.json --noEmit && node scripts/test-web-sqlite.mjs && node scripts/test-web-server.mjs && node --import tsx scripts/test-web-storage.mjs && node scripts/test-see-server.mjs && node --import tsx scripts/test-web-accounts.mjs",
     "start:web": "tsx --tsconfig docker/server/tsconfig.json docker/server/index.ts",
-    "analytics:report": "tsx scripts/analytics-report.ts"
+    "analytics:report": "tsx scripts/analytics-report.ts",
+    "app:dev": "bash app/scripts/build.sh -dev",
+    "app:build": "bash app/scripts/build.sh",
+    "app:check": "pnpm --dir app/frontend check",
+    "app:test": "pnpm --dir app/frontend test",
+    "sync:changelog": "node scripts/sync-changelog.mjs",
+    "sync:changelog:check": "node scripts/sync-changelog.mjs --check"
   },
   "dependencies": {
     "@material-symbols/font-400": "^0.48.0",

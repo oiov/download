@@ -1,0 +1,1129 @@
+/*
+  Keep Video UI 演示 —— 全局样式与设计系统。
+  这是一个独立入口（demo/index.html），复用 src/style.css 的 @theme 色值，
+  但不共享迁移中的组件，方便单独迭代、也方便验证通过后整体搬进正式 UI。
+
+  视觉方向：纸张 + 墨 + 琥珀的精密工具感。
+  - 不做玻璃/模糊：层次靠细线、实色面、排版与留白
+  - 琥珀只承担信号：主操作、选中、进度
+  - 动效只解释状态，160ms 为主，只动 transform / opacity
+*/
+
+@import 'tailwindcss';
+
+/* Material Symbols 手写 @font-face：只加载 outlined 一套，离线可用。
+   不用字体包自带的 css（会打包三套字体，且相对 url 解析不可靠）。 */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('@material-symbols/font-400/material-symbols-outlined.woff2') format('woff2');
+}
+
+.msi {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0;
+}
+
+@theme {
+  --color-error-dim: #791903;
+  --color-on-background: #3b3125;
+  --color-primary-dim: #9a3c16;
+  --color-on-secondary-fixed-variant: #435f6d;
+  --color-on-surface-variant: #695d50;
+  --color-on-primary-fixed: #271300;
+  --color-tertiary-container: #ffb99f;
+  --color-on-secondary-fixed: #264350;
+  --color-secondary: #466370;
+  --color-surface: #fff8f4;
+  --color-outline: #86786a;
+  --color-error-container: #fd795a;
+  --color-surface-dim: #e8d7c6;
+  --color-tertiary-fixed: #ffb99f;
+  --color-on-secondary-container: #395663;
+  --color-on-secondary: #f3faff;
+  --color-secondary-dim: #3a5764;
+  --color-surface-container-high: #f5e6d6;
+  --color-on-primary-container: #4a2800;
+  --color-on-tertiary-fixed: #4c2211;
+  --color-surface-container: #fbebdd;
+  --color-on-tertiary: #fff7f5;
+  --color-secondary-fixed: #c9e7f7;
+  --color-on-primary-fixed-variant: #563000;
+  --color-inverse-surface: #120d08;
+  --color-inverse-primary: #fb7a42;
+  --color-surface-variant: #f1e0ce;
+  --color-surface-container-lowest: #ffffff;
+  --color-background: #fff8f4;
+  --color-primary-fixed-dim: #e8673a;
+  --color-on-surface: #3b3125;
+  --color-tertiary-dim: #784632;
+  --color-surface-container-highest: #f1e0ce;
+  --color-on-tertiary-fixed-variant: #6f3e2a;
+  --color-outline-variant: #bfaf9f;
+  --color-secondary-fixed-dim: #bbd9e9;
+  --color-primary: #b3471b;
+  --color-inverse-on-surface: #a59b92;
+  --color-surface-container-low: #fff1e5;
+  --color-primary-container: #fb7a42;
+  --color-on-error: #fff7f6;
+  --color-error: #a73b21;
+  --color-on-error-container: #6e1400;
+  --color-tertiary: #86523d;
+  --color-secondary-container: #c9e7f7;
+  --color-primary-fixed: #fb7a42;
+  --color-on-tertiary-container: #643622;
+  --color-tertiary-fixed-dim: #efac92;
+  --color-on-primary: #fff7f4;
+  --color-surface-tint: #b3471b;
+  --color-surface-bright: #fff8f4;
+
+  --font-headline: Plus Jakarta Sans, Noto Sans SC, sans-serif;
+  --font-body: Inter, Noto Sans SC, sans-serif;
+  --font-label: Inter, Noto Sans SC, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --radius: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    /* Tailwind v4 没有 --color-gray-200（那是 v3 / shadcn 脚手架的残留）。
+       原来的 fallback 是 currentcolor，实际效果是「边框跟着文字色走」，
+       这不是设计意图。改用本项目的分隔线 token。 */
+    border-color: var(--rule);
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+:root {
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --ink: var(--color-on-surface);
+  --ink-strong: #241a10;
+  --paper: var(--color-surface);
+  --paper-raised: var(--color-surface-container-lowest);
+  --paper-deep: var(--color-surface-container-low);
+  --paper-sunk: var(--color-surface-container);
+  --rule: color-mix(in oklab, var(--color-on-surface) 13%, transparent);
+  --rule-soft: color-mix(in oklab, var(--color-on-surface) 7%, transparent);
+  --rule-strong: color-mix(in oklab, var(--color-on-surface) 26%, transparent);
+  --accent: var(--color-primary-container);
+  --accent-deep: var(--color-primary);
+  --accent-ink: var(--color-on-primary-fixed);
+  --accent-wash: color-mix(in oklab, var(--color-primary-container) 12%, transparent);
+  --teal: var(--color-secondary);
+  --danger: var(--color-error);
+  --success: #4d6b43;
+
+  /* 档位色：EffortSlider 的四档强调色。
+     原先散落在组件里写死，且用了从未定义过的 `--primary`，
+     导致 var(--primary, #2563eb) 的退化值一直在生效。
+     这里收成 token，深浅两套各自定义。
+     与品牌橙同一色系，由浅到深表示连接数递增，推荐档（8 路）落在品牌主色附近。 */
+  --level-0: #a16207;
+  --level-1: #ea580c;
+  --level-2: #c2410c;
+  --level-3: #9a3412;
+  --level-apex: #b3471b;
+  --level-apex-flash: #fde0cf;
+
+  /* 固定白：只用于「压在彩色/深色底上的图标与文字」，
+     不随主题反转（深色主题下这些面依然是深色） */
+  --on-solid: #ffffff;
+
+  /* 这两个 token 一直被引用却从未定义——
+     var(--warn) / var(--ink-faint) 都是裸引用、没有 fallback，
+     于是取值无效、属性被浏览器整条丢弃。补上真正的定义。 */
+  --warn: #a8641d;
+  --ink-faint: rgba(20, 20, 19, 0.22);
+
+  /* 圆角档位：默认 = 演示当前尺度；圆润沿用 website/index.html 的 24 / 16 / 12 */
+  --radius-card: 14px;
+  --radius-panel: 12px;
+  --radius-media: 10px;
+  --radius-control: 8px;
+  --radius-small: 5px;
+
+  /* 固定深色面：照片角标 / toast / 演示面板用，不随主题变 */
+  --panel-dark: #241a10;
+  --panel-dark-fg: #fff8f4;
+  --scrim: rgba(18, 13, 8, 0.42);
+
+  --font-display: 'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif;
+  --font-ui: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  --font-code: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 160ms;
+  --dur-slow: 260ms;
+
+  --shadow-sheet:
+    0 1px 0 color-mix(in oklab, var(--color-on-surface) 4%, transparent),
+    0 18px 40px -24px color-mix(in oklab, var(--color-on-surface) 40%, transparent);
+  --shadow-lift:
+    0 1px 0 color-mix(in oklab, var(--color-on-surface) 5%, transparent),
+    0 10px 24px -14px color-mix(in oklab, var(--color-on-surface) 34%, transparent);
+  --shadow-pop:
+    0 1px 0 color-mix(in oklab, var(--color-on-surface) 5%, transparent),
+    0 24px 60px -28px color-mix(in oklab, var(--color-on-surface) 48%, transparent);
+}
+
+
+:root[data-radius='sharp'] {
+  --radius-card: 8px;
+  --radius-panel: 8px;
+  --radius-media: 6px;
+  --radius-control: 5px;
+  --radius-small: 3px;
+}
+:root[data-radius='round'] {
+  --radius-card: 24px;
+  --radius-panel: 16px;
+  --radius-media: 12px;
+  --radius-control: 10px;
+  --radius-small: 6px;
+}
+
+/* ============================================================
+   深色主题
+   ============================================================
+   只覆盖 token 与派生变量；组件全部已经用变量取色。
+   固定深色面（照片角标 / toast / 演示面板）用 --panel-dark 系列，
+   不随主题反转。 */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-surface: #171310;
+  --color-background: #171310;
+  --color-surface-bright: #171310;
+  --color-surface-container-lowest: #211b16;
+  --color-surface-container-low: #1d1814;
+  --color-surface-container: #241e18;
+  --color-surface-container-high: #2b241d;
+  --color-surface-container-highest: #322a22;
+  --color-surface-variant: #322a22;
+  --color-surface-dim: #100d0a;
+
+  --color-on-surface: #f2e9dd;
+  --color-on-background: #f2e9dd;
+  --color-on-surface-variant: #b7a897;
+  --color-outline: #8e7e6c;
+  --color-outline-variant: #5f5246;
+  --color-inverse-surface: #f2e9dd;
+  --color-inverse-on-surface: #2b2118;
+
+  --color-primary: #ff9a6b;
+  --color-primary-dim: #ffb08a;
+  --color-primary-container: #fb7a42;
+  --color-primary-fixed: #fb7a42;
+  --color-primary-fixed-dim: #ff9a6b;
+  --color-on-primary: #2b1600;
+  --color-on-primary-container: #3a1e00;
+  --color-on-primary-fixed: #271300;
+  --color-on-primary-fixed-variant: #3d2300;
+  --color-inverse-primary: #b3471b;
+
+  --color-secondary: #a6c8d8;
+  --color-secondary-dim: #c2dfec;
+  --color-secondary-container: #2a4653;
+  --color-on-secondary: #10242d;
+  --color-on-secondary-container: #d3edfa;
+
+  --color-tertiary: #e5a68f;
+  --color-tertiary-dim: #f2bda9;
+  --color-tertiary-container: #6e3c2a;
+  --color-on-tertiary: #2d1209;
+  --color-on-tertiary-container: #ffd9cb;
+
+  --color-error: #ff9c83;
+  --color-error-dim: #ffb5a2;
+  --color-error-container: #6d1f0c;
+  --color-on-error: #2d0a03;
+  --color-on-error-container: #ffd9d1;
+
+  --ink: var(--color-on-surface);
+  --ink-strong: #f8f0e6;
+  --paper: var(--color-surface);
+  --paper-raised: var(--color-surface-container-lowest);
+  --paper-deep: var(--color-surface-container-low);
+  --paper-sunk: var(--color-surface-container);
+  --rule: color-mix(in oklab, var(--color-on-surface) 16%, transparent);
+  --rule-soft: color-mix(in oklab, var(--color-on-surface) 9%, transparent);
+  --rule-strong: color-mix(in oklab, var(--color-on-surface) 30%, transparent);
+  --accent: var(--color-primary-container);
+  --accent-deep: var(--color-primary);
+  --accent-ink: var(--color-on-primary-fixed);
+  --accent-wash: color-mix(in oklab, var(--color-primary-container) 16%, transparent);
+  --teal: var(--color-secondary);
+  --danger: var(--color-error);
+  --success: #9ac58a;
+
+  /* 档位色在深色下提亮一档：同样的橙压在 #171310 上会发闷 */
+  --level-0: #fcd34d;
+  --level-1: #fb923c;
+  --level-2: #f97316;
+  --level-3: #fdba74;
+  --level-apex: #fb7a42;
+  --level-apex-flash: #fed7aa;
+
+  --on-solid: #ffffff;
+
+  --warn: #e0a458;
+  --ink-faint: rgba(242, 233, 221, 0.26);
+
+  --shadow-sheet:
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 18px 40px -24px rgba(0, 0, 0, 0.85);
+  --shadow-lift:
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 10px 24px -14px rgba(0, 0, 0, 0.7);
+  --shadow-pop:
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 24px 60px -28px rgba(0, 0, 0, 0.9);
+
+  --panel-dark: #100c08;
+  --panel-dark-fg: #fff8f4;
+  --scrim: rgba(0, 0, 0, 0.62);
+}
+
+:root[data-theme='dark'] body::before {
+  opacity: 0.1;
+}
+
+/* 深色下分段控件的选中块需要比容器亮一档，否则几乎看不出选中 */
+:root[data-theme='dark'] .seg button.is-active {
+  background: var(--color-surface-container-high);
+}
+
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100%;
+  background-color: var(--paper);
+  color: var(--ink);
+  overscroll-behavior: none;
+}
+
+#app {
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* 纸纹：极淡的点阵。固定层、不拦截点击。 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--color-on-surface) 11%, transparent) 0.5px,
+    transparent 0.6px
+  );
+  background-size: 18px 18px;
+  opacity: 0.22;
+  mask-image: linear-gradient(to bottom, transparent 0, black 22%, black 78%, transparent 100%);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 55%, transparent);
+  color: var(--ink-strong);
+}
+
+/*
+  焦点环。
+
+  **不要在这里设 border-radius**：这行原本是 `border-radius: 4px`，
+  目的是让方形元素的焦点环有圆角，但 `:focus-visible` 是全局选择器——
+  它会把**所有**元素在聚焦时的圆角都改成 4px，包括本来就是圆的元素。
+
+  实际后果：滑块的圆形 thumb 一聚焦就变成圆角方块（看起来像「拇指坏了」），
+  而这个 bug 只在「用键盘操作」时才出现——鼠标点不会触发 :focus-visible，
+  所以肉眼测的时候很容易漏掉。
+
+  正确做法：需要圆角的地方自己写 `border-radius`，
+  焦点环只管 outline。
+*/
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent-deep) 82%, transparent);
+  outline-offset: 2px;
+}
+
+/* ---------- 排版工具 ---------- */
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-code);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+.eyebrow::before {
+  content: '';
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+  color: var(--ink-strong);
+  text-wrap: balance;
+}
+
+.num {
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.muted {
+  color: var(--color-on-surface-variant);
+}
+
+.hairline {
+  height: 1px;
+  border: 0;
+  background: var(--rule);
+}
+
+.scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-outline-variant) 60%, transparent) transparent;
+}
+.scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--color-outline-variant) 55%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--color-outline-variant) 85%, transparent);
+  background-clip: padding-box;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ---------- 按钮 ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out);
+}
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: color-mix(in oklab, var(--accent-deep) 30%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 1px 2px color-mix(in oklab, var(--accent-deep) 26%, transparent);
+}
+.btn-primary:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--accent) 88%, white);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 4px 12px -4px color-mix(in oklab, var(--accent-deep) 45%, transparent);
+}
+
+.btn-ink {
+  background: var(--ink-strong);
+  color: var(--paper);
+  border-color: var(--ink-strong);
+}
+.btn-ink:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--ink-strong) 86%, var(--accent-deep));
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-on-surface) 5%, transparent);
+  border-color: var(--rule-strong);
+}
+
+.btn-quiet {
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  border-color: transparent;
+  padding: 0 10px;
+}
+.btn-quiet:hover:not(:disabled) {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--color-on-surface) 5%, transparent);
+}
+
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: calc(var(--radius-control) - 1px);
+}
+.btn-lg {
+  height: 46px;
+  padding: 0 22px;
+  font-size: 14px;
+  border-radius: calc(var(--radius-control) + 1px);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: calc(var(--radius-control) - 1px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+.icon-btn:hover {
+  background: color-mix(in oklab, var(--color-on-surface) 6%, transparent);
+  color: var(--ink);
+}
+.icon-btn--bordered {
+  border-color: var(--rule);
+}
+.icon-btn--bordered:hover {
+  border-color: var(--rule-strong);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.chip:hover {
+  border-color: var(--rule-strong);
+  color: var(--ink);
+}
+.chip--active {
+  border-color: color-mix(in oklab, var(--accent-deep) 55%, transparent);
+  background: var(--accent-wash);
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+.chip--warn {
+  border-color: color-mix(in oklab, var(--warn) 55%, transparent);
+  background: color-mix(in oklab, var(--warn) 12%, transparent);
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--rule);
+  background: color-mix(in oklab, var(--color-surface-container-low) 70%, transparent);
+}
+.seg button {
+  height: 26px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: calc(var(--radius-control) - 2px);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.seg button:hover {
+  color: var(--ink);
+}
+.seg button.is-active {
+  background: var(--paper-raised);
+  color: var(--ink-strong);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-on-surface) 14%, transparent);
+}
+
+.field {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--rule);
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.field::placeholder {
+  color: color-mix(in oklab, var(--color-on-surface-variant) 72%, transparent);
+}
+.field:hover {
+  border-color: var(--rule-strong);
+}
+.field:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--accent-deep) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+.field--mono {
+  font-family: var(--font-code);
+  font-size: 12px;
+}
+
+select.field {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-on-surface-variant) 50%),
+    linear-gradient(135deg, var(--color-on-surface-variant) 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% - 1px),
+    calc(100% - 10px) calc(50% - 1px);
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 30px;
+}
+
+.switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: color-mix(in oklab, var(--color-surface-container-high) 80%, transparent);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--paper-raised);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-on-surface) 30%, transparent);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.switch[aria-checked='true'] {
+  background: var(--accent);
+  border-color: color-mix(in oklab, var(--accent-deep) 40%, transparent);
+}
+.switch[aria-checked='true']::after {
+  transform: translateX(16px);
+}
+
+.sheet {
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-sheet);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border: 1px solid var(--rule);
+  border-bottom-color: var(--rule-strong);
+  border-radius: var(--radius-small);
+  background: var(--paper-raised);
+  font-family: var(--font-code);
+  font-size: 10px;
+  color: var(--color-on-surface-variant);
+}
+
+/* ---------- 应用外壳 ---------- */
+
+.shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 56px minmax(0, 1fr) 30px;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--rule);
+  background: color-mix(in oklab, var(--paper) 86%, transparent);
+
+  /* 顶栏是**窗口拖动区**。
+   *
+   * macOS 用的是 `TitleBarHiddenInset()`（FullSizeContent），也就是没有独立
+   * 标题栏、内容铺到顶部。不把顶栏设成 drag 区域的话，整个窗口**没有任何
+   * 地方能拖动** —— 用户只能靠红绿灯旁边的空隙，而这个应用是全自绘顶栏，
+   * 那条空隙还不存在。
+   *
+   * `-webkit-app-region` 在 Wails 的 WebKit（macOS）与 WebKitGTK（Linux）上
+   * 都生效；Windows 走的是另一套（见 main.go 的 Windows 分支说明）。
+   */
+  -webkit-app-region: drag;
+  app-region: drag;
+  /* 拖拽区不可选中文本：否则拖动时会变成「选中标题」 */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* macOS：给窗口红绿灯让出 78px（三个圆点的实际占用 + 安全间距）。
+ *
+ * 不这么做的话「Keep Video」标识正好压在红绿灯下面 —— 既是视觉遮挡，
+ * 又让那块区域同时承担「红绿灯」与「品牌区」两个职责。
+ */
+.topbar.is-mac {
+  padding-left: 84px;
+}
+
+/* 顶栏里的**所有可交互元素**必须退出 drag 区域。
+ *
+ * 这是个很容易漏的地方：`-webkit-app-region: drag` 会让子元素**默认也是**
+ * 拖拽区，于是按钮点不动 —— 而且没有任何报错，只是「点了没反应」。
+ */
+.topbar button,
+.topbar a,
+.topbar input,
+.topbar select,
+.topbar .nav,
+.topbar .nav-item,
+.topbar .topbar-right {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 18px;
+  flex: none;
+}
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink-strong);
+}
+.brand-tag {
+  font-family: var(--font-code);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-on-surface-variant);
+  border-left: 1px solid var(--rule);
+  padding-left: 10px;
+  margin-left: 2px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  flex: 1;
+  min-width: 0;
+}
+.nav-item {
+  position: relative;
+  height: 32px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  transition:
+    color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.nav-item:hover {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--color-on-surface) 5%, transparent);
+}
+.nav-item.is-active {
+  color: var(--ink-strong);
+}
+.nav-item.is-active::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  bottom: -13px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--rule);
+}
+
+.workarea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 0;
+  min-height: 0;
+  transition: grid-template-columns var(--dur-slow) var(--ease-out);
+}
+.workarea.with-rail {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+.main {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+.main-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.view {
+  padding: clamp(14px, 2.2vh, 26px) clamp(18px, 3vw, 32px);
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  border-top: 1px solid var(--rule);
+  background: color-mix(in oklab, var(--paper-deep) 52%, var(--paper));
+  font-family: var(--font-code);
+  font-size: 10.5px;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+}
+.statusbar .grow {
+  flex: 1;
+}
+.status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out);
+}
+.status-btn:hover {
+  background: color-mix(in oklab, var(--color-on-surface) 6%, transparent);
+  color: var(--ink);
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  flex: none;
+}
+.dot--warn {
+  background: var(--accent-deep);
+}
+.dot--danger {
+  background: var(--danger);
+}
+.dot--live {
+  background: var(--accent);
+  animation: pulse-soft 1.6s var(--ease-in-out) infinite;
+}
+
+/* ---------- 动效 ---------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes scan {
+  from {
+    transform: translate3d(-110%, 0, 0);
+  }
+  to {
+    transform: translate3d(340%, 0, 0);
+  }
+}
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.view-enter {
+  animation: rise-in var(--dur-slow) var(--ease-out) both;
+}
+.spin {
+  animation: spin 900ms linear infinite;
+}
+.pulse-soft {
+  animation: pulse-soft 1.6s var(--ease-in-out) infinite;
+}
+.scan-line {
+  position: relative;
+  overflow: hidden;
+}
+.scan-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--accent) 75%, transparent),
+    transparent
+  );
+  animation: scan 1.5s var(--ease-in-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .view-enter {
+    animation: none;
+  }
+  .scan-line::after {
+    animation: none;
+    width: 100%;
+    opacity: 0.4;
+  }
+}
+
+@media (max-width: 980px) {
+  .view {
+    padding: 26px 24px 36px;
+  }
+  .workarea.with-rail {
+    grid-template-columns: minmax(0, 1fr) 312px;
+  }
+}
+/* 880~760 之间：侧栏再收一档，否则内容区被压到 480 以下，格式卡片必然换行 */
+@media (max-width: 860px) {
+  .workarea.with-rail {
+    grid-template-columns: minmax(0, 1fr) 268px;
+  }
+}
+@media (max-height: 760px) {
+  /* 小窗口（最小 880×560）：把纵向留白压一点，保证首页和解析结果都能完整看到 */
+  .view {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
+@media (max-width: 820px) {
+  .shell {
+    grid-template-rows: 54px minmax(0, 1fr) 0;
+  }
+  .statusbar {
+    display: none;
+  }
+  /* 底部有 54px 的手机式导航，内容要给它让位。
+   *
+   * **内边距必须加在 `.view` 上，不能加在 `.main-scroll` 的 padding**：
+   * 滚动容器的 `padding-bottom` 不进入滚动高度，滚到底时最后一段仍会被
+   * 固定定位的导航压住（真机上就是条目末尾的文字被切掉）。
+   *
+   * 76px = 54px 导航 + 22px 呼吸空间。
+   */
+  .view {
+    padding: 16px 16px 76px;
+  }
+  .workarea.with-rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 窄屏不再把 rail 压成 0 宽，而是做成底部浮层；顶部任务按钮负责重新打开。
+   *
+   * ## 这里出过一个「页面打不开」的 bug
+   *
+   * 浮层默认是展开的（`railOpen` 初始值 true），而窄窗口下它占 56vh、
+   * `position: fixed`、`z-index: 45` —— 于是**整块内容被盖住**。
+   * 用户看到的是「关于页点开了但一片空白」，实际内容在浮层底下。
+   *
+   * 修法两条：
+   *   1. 高度压到 46vh（留出更多可见内容）
+   *   2. 只有真的存在任务时才占位——没有任务时这个面板没有任何信息，
+   *      让它挡住正文毫无道理（组件侧见 TransferRail 的 `hasTasks` 判断）
+   */
+  .rail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 54px;
+    height: min(46vh, 360px);
+    z-index: 45;
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+    border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+    box-shadow: var(--shadow-pop);
+    background: var(--paper-deep);
+  }
+}

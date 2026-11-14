@@ -1,0 +1,208 @@
+package main
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+)
+
+// 迁移用例都靠改 HOME 把 ~ 指到临时目录：resolveHistoryPath / keepvideoHome
+// 都从 os.UserHomeDir() 取根，不改 HOME 就会写到真实的 ~/.keepvideo。
+// Windows 上 os.UserHomeDir 读 USERPROFILE，所以两个都设。
+func setFakeHome(t *testing.T) string {
+	t.Helper()
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
+	return home
+}
+
+func writeFile(t *testing.T, path, body string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("读 %s 失败：%v", path, err)
+	}
+	return string(data)
+}
+
+// 目标目录**已存在**（哪怕是个空目录）时也必须逐项搬过去。
+//
+// 变异点：早先的实现只在目标目录不存在时才搬，于是「手动建过空目录」或
+// 「上次搬家失败留下半个目录」的用户，旧目录里的 yt-dlp 会永远躺着，而探测
+// 只看新目录 → 依赖像是消失了，用户白重下 80MB。
+func TestMigrateTreeMovesIntoExistingTarget(t *testing.T) {
+	home := setFakeHome(t)
+	dataDir := filepath.Join(home, "userdata")
+	oldDir := filepath.Join(dataDir, "runtime", "bin")
+	newDir := filepath.Join(home, ".keepvideo", "runtime", "bin")
+
+	writeFile(t, filepath.Join(oldDir, "yt-dlp"), "old-ytdlp")
+	writeFile(t, filepath.Join(oldDir, "keepvideo-deps"), "old-sidecar")
+	if err := os.MkdirAll(newDir, 0o755); err != nil { // 目标目录已存在
+		t.Fatal(err)
+	}
+
+	got := resolveManagedDir(dataDir)
+	if got != newDir {
+		t.Fatalf("托管目录应为 %q，got %q", newDir, got)
+	}
+	if body := readFile(t, filepath.Join(newDir, "yt-dlp")); body != "old-ytdlp" {
+		t.Errorf("yt-dlp 应已搬到新目录，内容 %q", body)
+	}
+	if body := readFile(t, filepath.Join(newDir, "keepvideo-deps")); body != "old-sidecar" {
+		t.Errorf("keepvideo-deps 应已搬到新目录，内容 %q", body)
+	}
+	if _, err := os.Stat(oldDir); !os.IsNotExist(err) {
+		t.Errorf("搬空的旧目录应被删掉，err = %v", err)
+	}
+}
+
+// 目标已有同名文件时**不覆盖**：新目录里可能是更新过的版本，覆盖等于降级。
+func TestMigrateTreeKeepsNewerTargetFile(t *testing.T) {
+	home := setFakeHome(t)
+	dataDir := filepath.Join(home, "userdata")
+	oldDir := filepath.Join(dataDir, "runtime", "bin")
+	newDir := filepath.Join(home, ".keepvideo", "runtime", "bin")
+
+	writeFile(t, filepath.Join(oldDir, "yt-dlp"), "old-ytdlp")
+	writeFile(t, filepath.Join(newDir, "yt-dlp"), "new-ytdlp")
+
+	resolveManagedDir(dataDir)
+
+	if body := readFile(t, filepath.Join(newDir, "yt-dlp")); body != "new-ytdlp" {
+		t.Errorf("新目录里的版本不该被旧文件覆盖，got %q", body)
+	}
+	if body := readFile(t, filepath.Join(oldDir, "yt-dlp")); body != "old-ytdlp" {
+		t.Errorf("被跳过的旧文件应留在原地，got %q", body)
+	}
+}
+
+// 下载历史必须跟着搬：留在 userData 里 = 用户升级后历史「凭空消失」。
+func TestResolveHistoryPathMigratesOldFile(t *testing.T) {
+	home := setFakeHome(t)
+	dataDir := filepath.Join(home, "userdata")
+	oldPath := filepath.Join(dataDir, "download-history.json")
+	writeFile(t, oldPath, `[{"title":"旧的记录"}]`)
+
+	got := resolveHistoryPath(dataDir)
+	want := filepath.Join(home, ".keepvideo", "download-history.json")
+	if got != want {
+		t.Fatalf("历史文件位置应为 %q，got %q", want, got)
+	}
+	if body := readFile(t, got); body != `[{"title":"旧的记录"}]` {
+		t.Errorf("历史内容应原样搬过来，got %q", body)
+	}
+	if _, err := os.Stat(oldPath); !os.IsNotExist(err) {
+		t.Errorf("旧文件应已被移走，err = %v", err)
+	}
+}
+
+// 新位置已有历史时以它为准：不能被旧文件覆盖掉升级后新增的记录。
+func TestResolveHistoryPathKeepsExistingFile(t *testing.T) {
+	home := setFakeHome(t)
+	dataDir := filepath.Join(home, "userdata")
+	oldPath := filepath.Join(dataDir, "download-history.json")
+	newPath := filepath.Join(home, ".keepvideo", "download-history.json")
+	writeFile(t, oldPath, "old")
+	writeFile(t, newPath, "new")
+
+	if got := resolveHistoryPath(dataDir); got != newPath {
+		t.Fatalf("got %q", got)
+	}
+	if body := readFile(t, newPath); body != "new" {
+		t.Errorf("新位置的历史不该被覆盖，got %q", body)
+	}
+	if body := readFile(t, oldPath); body != "old" {
+		t.Errorf("被跳过的旧文件应留在原地，got %q", body)
+	}
+}
+
+// 全新安装（没有旧文件、没有旧目录）不该报错、也不该创建空目录。
+func TestResolvePathsOnFreshInstall(t *testing.T) {
+	home := setFakeHome(t)
+	dataDir := filepath.Join(home, "userdata")
+
+	if got := resolveHistoryPath(dataDir); got != filepath.Join(home, ".keepvideo", "download-history.json") {
+		t.Errorf("got %q", got)
+	}
+	if got := resolveManagedDir(dataDir); got != filepath.Join(home, ".keepvideo", "runtime", "bin") {
+		t.Errorf("got %q", got)
+	}
+	if _, err := os.Stat(filepath.Join(home, ".keepvideo")); !os.IsNotExist(err) {
+		t.Errorf("全新安装不该创建 ~/.keepvideo，err = %v", err)
+	}
+}
+
+// 开发构建下「界面显示的版本」与「更新检查用的版本」必须是同一个。
+//
+// 变异点：GetVersion 会退回 CHANGELOG 的最近发布版本（界面上写 1.6.4），
+// 而 CheckUpdate 直接拿 `version`（0.0.0-dev）去比最新 Release（也是 1.6.4），
+// 于是每次启动都提示「有新版本」，点进去版本号一模一样。
+func TestEffectiveVersionMatchesDisplayedVersion(t *testing.T) {
+	old := version
+	defer func() { version = old }()
+
+	version = "0.0.0-dev" // 与 go build / wails dev 的默认值一致
+	got := effectiveVersion()
+	if got == "" || got == "0.0.0-dev" {
+		t.Fatalf("开发构建应退回 CHANGELOG 的已发布版本，got %q", got)
+	}
+	if (&App{}).GetVersion() != got {
+		t.Errorf("GetVersion 与 effectiveVersion 必须一致")
+	}
+	// 与最新 Release 比较时不能得出「有更新」
+	if hasNewerRelease(got) {
+		t.Errorf("本机版本 %q 不应被判定为落后于同版本 %q", got, got)
+	}
+	if !hasNewerRelease("99.0.0") {
+		t.Errorf("更新的版本必须被识别出来")
+	}
+
+	version = "9.9.9" // 正式构建注入的版本优先
+	if got := effectiveVersion(); got != "9.9.9" {
+		t.Errorf("注入的版本应优先，got %q", got)
+	}
+}
+
+// 断点续传/再次下载时，只有「足够新」的解析缓存才允许用来起下载。
+//
+// 变异点：info JSON 里的直链几小时就过期。拿过期缓存起步，yt-dlp 第一次注定
+// 失败、再回落完整提取——用户等两遍，感觉「续传启动特别慢」。
+func TestCacheFileFresh(t *testing.T) {
+	dir := t.TempDir()
+	fresh := filepath.Join(dir, "fresh.json")
+	if err := os.WriteFile(fresh, []byte("{}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if !cacheFileFresh(fresh, time.Hour) {
+		t.Error("刚写出的缓存应算新鲜")
+	}
+
+	old := filepath.Join(dir, "old.json")
+	if err := os.WriteFile(old, []byte("{}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	past := time.Now().Add(-3 * time.Hour)
+	if err := os.Chtimes(old, past, past); err != nil {
+		t.Fatal(err)
+	}
+	if cacheFileFresh(old, time.Hour) {
+		t.Error("3 小时前的缓存不该再被采用")
+	}
+
+	if cacheFileFresh(filepath.Join(dir, "nope.json"), time.Hour) {
+		t.Error("不存在的缓存应判为不可用")
+	}
+}
