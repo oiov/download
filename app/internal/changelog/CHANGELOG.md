@@ -1,6 +1,6 @@
 # 更新日志
 
-## [Unreleased]
+## [1.1.0] - 2026-11-14
 
 ### 新增
 - 新版桌面客户端（`app/`，Go + Wails + Svelte 5）同步自上游最新实现：单文件内置依赖探测边车，与 Electron 版并行发布（产物前缀 `KeepVideo-Desktop-`），通过 GitHub Releases 与 `checksums.txt` 校验自更新；首次启动沿用 Electron 版的下载历史。已清理上游的标题、Logo、作者的话、赞助、群聊、贡献者、插件与 Gitee/CNB 更新源，关于页改为本项目的反馈与联系方式，配色与官网一致。

@@ -399,6 +399,14 @@ jobs:
           node scripts/sync-changelog.mjs --check
           cd app && wails generate module
 
+      # wails.json 不写死版本号（避免与 package.json 两处手工同步）；缺省时 Wails 会把
+      # Windows exe 属性与 NSIS 安装器标成 1.0.0，所以构建前按发布版本写入
+      - name: 写入安装包版本号
+        shell: bash
+        run: |
+          node -e "const f='app/wails.json';const fs=require('fs');const j=JSON.parse(fs.readFileSync(f,'utf8'));j.info.productVersion=process.env.VERSION;fs.writeFileSync(f,JSON.stringify(j,null,2)+'\n')"
+          node -p "require('./app/wails.json').info.productVersion"
+
       # 必须用 build.sh：它先编译依赖边车再带 withsidecar 构建，直接 wails build 的产物没有依赖探测能力
       - name: 构建
         shell: bash
