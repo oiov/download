@@ -52,8 +52,8 @@ curl -fsSL https://get.pnpm.io/install.sh | sh -
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/oiov/download.git
-cd downvid
+git clone https://github.com/oiov/keep.video.git
+cd keep.video
 ```
 
 ### 2. 安装项目依赖

@@ -15,8 +15,8 @@ const GENERATED_NOTES = `<!-- 此正文由 scripts/gen-release-notes.mjs 生成�
 
 ### ⬇️ 点击徽章直接下载
 
-[![Windows](https://img.shields.io/static/v1?label=Windows)](https://github.com/oiov/download/releases/download/v1.3.0/KeepVideo-Setup-1.3.0.exe)
-[![macOS](https://img.shields.io/static/v1?label=macOS)](https://github.com/oiov/download/releases/download/v1.3.0/KeepVideo-arm64-Mac-1.3.0.dmg)
+[![Windows](https://img.shields.io/static/v1?label=Windows)](https://github.com/oiov/keep.video/releases/download/v1.3.0/KeepVideo-Setup-1.3.0.exe)
+[![macOS](https://img.shields.io/static/v1?label=macOS)](https://github.com/oiov/keep.video/releases/download/v1.3.0/KeepVideo-arm64-Mac-1.3.0.dmg)
 
 </div>
 
@@ -26,7 +26,7 @@ const GENERATED_NOTES = `<!-- 此正文由 scripts/gen-release-notes.mjs 生成�
 
 | 平台 | 架构 | 安装包 |
 |------|------|--------|
-| Windows | x64 | [安装版 \`.exe\`](https://github.com/oiov/download/releases/download/v1.3.0/KeepVideo-Setup-1.3.0.exe) |
+| Windows | x64 | [安装版 \`.exe\`](https://github.com/oiov/keep.video/releases/download/v1.3.0/KeepVideo-Setup-1.3.0.exe) |
 
 ### ⚠️ 各平台注意事项
 
@@ -48,7 +48,7 @@ const GENERATED_NOTES = `<!-- 此正文由 scripts/gen-release-notes.mjs 生成�
 
 ---
 
-<sub>完整历史见 [CHANGELOG.md](https://github.com/oiov/download/blob/main/CHANGELOG.md)</sub>`
+<sub>完整历史见 [CHANGELOG.md](https://github.com/oiov/keep.video/blob/main/CHANGELOG.md)</sub>`
 
 describe('extractUserNotes', () => {
   it('裁掉下载引导区，只留更新内容', () => {

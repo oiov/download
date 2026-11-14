@@ -98,7 +98,7 @@ function loadUpdater(overrides = {}, sources = {}) {
         APP: { name: 'KeepVideo', owner: 'yxxbc', repo: 'downvid' },
         GITHUB_API: 'https://api.github.com',
         HTTP_USER_AGENT: 'KeepVideo/test',
-        RELEASES_URL: 'https://github.com/oiov/download/releases',
+        RELEASES_URL: 'https://github.com/oiov/keep.video/releases',
       },
       './store': { broadcast: (channel, data) => state.broadcasts.push({ channel, data }) },
       './main': { log: () => {} },

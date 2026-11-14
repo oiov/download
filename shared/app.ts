@@ -18,7 +18,7 @@ import promotionLinks from './promotion-links.json'
 export const APP = {
   name: 'Keep Video',
   owner: 'oiov',
-  repo: 'download',
+  repo: 'keep.video',
 } as const
 
 const GITHUB = 'https://github.com'

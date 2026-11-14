@@ -104,7 +104,7 @@
   "publish": {
     "provider": "github",
     "owner": "oiov",
-    "repo": "download",
+    "repo": "keep.video",
     "releaseType": "release"
   }
 }

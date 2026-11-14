@@ -20,7 +20,7 @@
 
 ### 下载地址
 
-👉 **[点击这里前往 Releases 页面下载最新版](https://github.com/oiov/download/releases/latest)**
+👉 **[点击这里前往 Releases 页面下载最新版](https://github.com/oiov/keep.video/releases/latest)**
 
 ### 选择正确的文件
 
@@ -150,7 +150,7 @@ AppImage 是最通用的格式，不需要安装，下载即可运行。
 
 ```bash
 # 1. 下载 AppImage（替换为实际版本号）
-# 从 https://github.com/oiov/download/releases/latest 下载
+# 从 https://github.com/oiov/keep.video/releases/latest 下载
 
 # 2. 添加可执行权限
 chmod +x Keep Video-*-x64-Linux-*.AppImage
