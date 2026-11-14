@@ -4,7 +4,8 @@ export class HttpError extends Error {
   constructor(readonly status: number, readonly code: string, readonly retryAfter?: number) { super(code) }
 }
 export function privateHeaders(res: ServerResponse) {
-  res.setHeader('Cache-Control', 'private, no-store, max-age=0')
+  // no-transform 阻止 CDN 改写私有页面：Cloudflare 邮箱混淆依赖注入脚本解码，而此处 CSP 禁止脚本，邮箱会停在占位文字。
+  res.setHeader('Cache-Control', 'private, no-store, max-age=0, no-transform')
   res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive')
   res.setHeader('Referrer-Policy', 'same-origin')
   res.setHeader('X-Frame-Options', 'DENY')

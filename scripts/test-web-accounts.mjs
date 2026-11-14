@@ -75,6 +75,7 @@ try {
   }
   const memberDashboard = await request('/dashboard?lang=zh', cookies.member)
   assert.equal(memberDashboard.status, 200)
+  assert.match(memberDashboard.headers.get('cache-control'), /no-transform/, '私有页面禁止 CDN 改写，否则邮箱会被混淆成无法解码的占位文字')
   const memberHtml = await memberDashboard.text()
   assert.match(memberHtml, /class="layout"/); assert.match(memberHtml, /class="rail"/)
   assert.ok(!/href="\/admin(?:["/])/.test(memberHtml), '普通用户的控制面板不渲染任何管理入口')
