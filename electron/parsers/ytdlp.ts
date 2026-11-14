@@ -3,9 +3,9 @@ import path from 'node:path'
 import { resolveDependency, checkJsRuntime } from '../utils/binary'
 import { cachedStatusSnapshot } from '../utils/runtime'
 import { getCookieAttempts, runWithCookies, cookieFailureHint, isCookieError } from '../utils/cookies'
-import { classifyParseError, parseDiagnostic, PARSE_MESSAGES } from '../../shared/parse-error'
+import { classifyParseErrorForSite, parseDiagnostic, PARSE_MESSAGES } from '../../shared/parse-error'
 import { nextYoutubeRetry, youtubeExtractorArgs, type YoutubeRetryState } from './youtube-retry'
-import { isTwitterUrl } from '../utils/platform'
+import { isDouyinUrl, isKuaishouUrl, isTwitterUrl } from '../utils/platform'
 import { LANG_NAMES } from '../constants'
 import { buildVideoFormats } from './formats'
 import { cacheParsedInfo, getCachedParse } from './info-cache'
@@ -90,8 +90,9 @@ async function parseViaCli(url: string, cookiesFile: string | undefined, proxy: 
     if (fallback.code === 0) { run = fallback; extraArgs = fallbackArgs }
   }
   if (run.code !== 0) {
-    const kind = classifyParseError(run.stderr)
-    throw new Error(`[[parse-error:${kind}]]` + parseDiagnostic(run.stderr, { ytdlp: run.version, runtime: run.runtimeVersion }) + cookieFailureHint(run.failedBrowsers))
+    const kind = classifyParseErrorForSite(run.stderr, isDouyinUrl(url) || isKuaishouUrl(url))
+    const marked = `[[parse-error:${kind}]]\n${run.stderr}`
+    throw new Error(`[[parse-error:${kind}]]` + parseDiagnostic(marked, { ytdlp: run.version, runtime: run.runtimeVersion }) + cookieFailureHint(run.failedBrowsers))
   }
   if (isYoutube && run.state.client) extraArgs = youtubeExtractorArgs(run.state)
 

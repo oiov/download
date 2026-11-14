@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isCookieError, runWithCookies, getCookieAttempts, type CookieAttempt } from '../electron/utils/cookies'
+import { isCookieError, runWithCookies, getCookieAttempts, cookieFailureHint, type CookieAttempt } from '../electron/utils/cookies'
 
 /**
  * cookie 读取失败的识别。
@@ -125,6 +125,20 @@ describe('公共服务器 Cookie 隔离', () => {
     } finally {
       if (previous === undefined) delete process.env.KEEP_WEB_MODE
       else process.env.KEEP_WEB_MODE = previous
+    }
+  })
+})
+
+describe('Cookie 读取失败提示', () => {
+  it('macOS 提示授予完全磁盘访问权限，其他平台不出现', () => {
+    const original = process.platform
+    try {
+      Object.defineProperty(process, 'platform', { value: 'darwin' })
+      expect(cookieFailureHint(['chrome'])).toContain('完全磁盘访问权限')
+      Object.defineProperty(process, 'platform', { value: 'linux' })
+      expect(cookieFailureHint(['chrome'])).not.toContain('完全磁盘访问权限')
+    } finally {
+      Object.defineProperty(process, 'platform', { value: original })
     }
   })
 })

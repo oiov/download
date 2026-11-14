@@ -93,7 +93,7 @@ export async function checkFfmpeg(): Promise<boolean> {
   const resolved = await resolveDependency('ffmpeg', false)
   if (!resolved) return false
   return new Promise((resolve) => {
-    const child = spawn(resolved, ['-version'])
+    const child = spawn(resolved, ['-version'], { windowsHide: true, timeout: 15_000 })
     child.on('error', () => resolve(false))
     child.on('close', (code) => resolve(code === 0))
   })

@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { getInstalledBrowsers } from './browser'
+import { parseJsonCookies, toNetscapeCookies } from '../parsers/shared'
 
 // yt-dlp cookie 策略：
 // 直接 --cookies-from-browser 在浏览器运行时常失败（Windows 下 Chrome 锁库 / App-Bound 加密、
@@ -115,6 +116,16 @@ function snapshotAge(): number | null {
   try { return Date.now() - fs.statSync(snapshot).mtimeMs } catch { return null }
 }
 
+/**
+ * 抖音直连解析拿不到 `--cookies-from-browser`，自动模式下复用 yt-dlp 导出的快照；
+ * 否则直连永远是匿名请求，短链只会被重定向到首页。公共服务器不借用宿主快照。
+ */
+export function browserCookieSnapshot(): string | undefined {
+  if (process.env.KEEP_WEB_MODE === '1') return undefined
+  const snapshot = snapshotPath()
+  return snapshot && fs.existsSync(snapshot) ? snapshot : undefined
+}
+
 // yt-dlp 退出时会把 cookie 写回 --cookies 指定的文件，并发任务共用同一文件会互相覆盖，
 // 所以每次运行都使用快照的独立副本
 function snapshotAttempt(label: string): CookieAttempt {
@@ -167,8 +178,37 @@ const noCookies = (): CookieAttempt => ({
 })
 
 /**
+ * 用户手动指定的 Cookie 文件。
+ *
+ * yt-dlp 的 `--cookies` 只认 Netscape：喂它扩展导出的 JSON 不报错也不带任何 Cookie，
+ * 退出时还会把空的 Cookie 罐写回该文件，抹掉用户的导出。JSON 先转成独立的临时文件；
+ * 转换失败宁可不带 Cookie，也不把原文件交给 yt-dlp 改写。
+ */
+function manualAttempt(file: string): CookieAttempt {
+  let converted: string | null = null
+  return {
+    ...noCookies(),
+    label: 'manual',
+    prepare: () => {
+      let jsonCookies: ReturnType<typeof parseJsonCookies>
+      try { jsonCookies = parseJsonCookies(fs.readFileSync(file, 'utf-8')) } catch { return ['--cookies', file] }
+      if (!jsonCookies) return ['--cookies', file]
+      converted ??= tempPath('manual')
+      if (!converted || !jsonCookies.length) return []
+      try {
+        fs.writeFileSync(converted, toNetscapeCookies(jsonCookies), { mode: 0o600 })
+        return ['--cookies', converted]
+      } catch {
+        return []
+      }
+    },
+    cleanup: () => removeQuietly(converted),
+  }
+}
+
+/**
  * 生成按顺序尝试的 cookie 来源。
- * - 手动模式：用户导入的 cookies.txt → 无 cookie
+ * - 手动模式：用户导入的 cookies.txt（JSON 导出先转 Netscape）→ 无 cookie
  * - 自动模式（解析）：各浏览器（上次成功的优先）→ 快照 → 无 cookie
  * - 自动模式（下载，preferSnapshot）：新鲜快照 → 各浏览器 → 旧快照 → 无 cookie
  *   解析刚刷新过快照，下载直接复用可保证两者 cookie 一致，并跳过浏览器解密
@@ -177,7 +217,7 @@ export function getCookieAttempts(manualFile?: string, preferSnapshot = false): 
   // 公共服务器不借用宿主浏览器或跨访客 Cookie 快照。
   if (process.env.KEEP_WEB_MODE === '1') return [noCookies()]
   if (manualFile && fs.existsSync(manualFile)) {
-    return [{ ...noCookies(), label: 'manual', prepare: () => ['--cookies', manualFile] }, noCookies()]
+    return [manualAttempt(manualFile), noCookies()]
   }
 
   const attempts: CookieAttempt[] = []
@@ -246,8 +286,11 @@ export function cookieFailureHint(failedBrowsers: string[]): string {
   const names = failedBrowsers.map(b => BROWSER_NAMES[b] || b).join('、')
   const chromiumOnWindows = process.platform === 'win32'
     && failedBrowsers.some(b => ['chrome', 'edge', 'brave', 'chromium'].includes(b))
+  // macOS 的浏览器 profile 与 Safari Cookie 容器受隐私保护，未授权时 yt-dlp 只说找不到 Cookie 库
+  const macPrivacy = process.platform === 'darwin'
   return `${COOKIE_HINT_MARKER}未能读取 ${names} 的 Cookie，本次未携带登录信息。`
     + (chromiumOnWindows ? 'Windows 上 Chrome/Edge 运行时 Cookie 数据库被锁定且加密，无法读取。' : '')
+    + (macPrivacy ? 'macOS 需在「系统设置 → 隐私与安全性 → 完全磁盘访问权限」中允许 Keep Video。' : '')
     + '若视频需要登录才能访问：① 完全退出该浏览器后重试；'
     + (failedBrowsers.includes('firefox') ? '② 或改用其他浏览器登录该网站；' : '② 或使用 Firefox 登录该网站（其 Cookie 可随时读取）；')
     + '③ 或在“设置 → Cookies”中手动导入 cookies.txt。'

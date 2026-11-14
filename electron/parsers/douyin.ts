@@ -3,6 +3,8 @@ import { getSharedBrowser, scheduleBrowserClose } from '../utils/browser'
 import {
   buildCookieHeader,
   DOUYIN_COOKIE_DOMAINS,
+  douyinVideoId,
+  douyinVideoIdFromRedirect,
   estimateFileSize,
   parseCookiesFile,
 } from './shared'
@@ -79,12 +81,10 @@ export async function parseDouyinWithAPI(url: string, cookiesFile?: string): Pro
   const cookies = cookiesFile && fs.existsSync(cookiesFile) ? parseCookiesFile(cookiesFile) : []
   const cookieHeader = buildCookieHeader(cookies, DOUYIN_COOKIE_DOMAINS)
 
-  const videoMatch = url.match(/\/video\/(\d+)/)
-  if (videoMatch) {
-    videoId = videoMatch[1]
-  }
+  videoId = douyinVideoId(url)
 
   if (!videoId) {
+    let redirectedUrl = ''
     try {
       const response = await fetch(url, {
         redirect: 'follow',
@@ -94,10 +94,9 @@ export async function parseDouyinWithAPI(url: string, cookiesFile?: string): Pro
           ...(cookieHeader ? { 'Cookie': cookieHeader } : {}),
         },
       })
-      const redirectedUrl = response.url
-      const newVideoMatch = redirectedUrl.match(/\/video\/(\d+)/)
-      if (newVideoMatch) videoId = newVideoMatch[1]
+      redirectedUrl = response.url
     } catch {}
+    if (redirectedUrl) videoId = douyinVideoIdFromRedirect(redirectedUrl, !!cookieHeader)
   }
 
   if (!videoId) throw new Error('无法从 URL 提取视频 ID')

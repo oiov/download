@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classifyParseError, parseDiagnostic, PARSE_MESSAGES, safeIssueReport } from '../shared/parse-error'
+import { classifyParseError, classifyParseErrorForSite, parseDiagnostic, PARSE_MESSAGES, safeIssueReport } from '../shared/parse-error'
 import { nextYoutubeRetry, youtubeExtractorArgs } from '../electron/parsers/youtube-retry'
 
 describe('解析错误与隐私', () => {
@@ -47,5 +47,18 @@ describe('YouTube 有限回退策略', () => {
   it('网络、鉴权和不支持网址不触发客户端回退', () => {
     for (const error of ['Connection timed out', 'Sign in to confirm', "Sign in to confirm you're not a bot", 'Unsupported URL', 'Unable to download API page: HTTP Error 403: Forbidden']) expect(nextYoutubeRetry(error, initial, '')).toBeNull()
     expect(classifyParseError('Unable to download API page: HTTP Error 403: Forbidden')).toBe('access-denied')
+  })
+})
+
+describe('抖音 / 快手的登录态类错误', () => {
+  it('「需要新鲜 Cookie」归为需要登录，而不是无法解析', () => {
+    expect(classifyParseError('ERROR: [Douyin] 7677476892161050292: Fresh cookies (not necessarily logged in) are needed')).toBe('authentication')
+  })
+
+  it('短链被重定向到首页后的 Unsupported URL 按需要登录处理，其他站点不变', () => {
+    const raw = 'ERROR: Unsupported URL: https://www.douyin.com/'
+    expect(classifyParseErrorForSite(raw, true)).toBe('authentication')
+    expect(classifyParseErrorForSite(raw, false)).toBe('unsupported-url')
+    expect(classifyParseErrorForSite('ERROR: HTTP Error 429: Too Many Requests', true)).toBe('rate-limit')
   })
 })

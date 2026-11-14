@@ -86,6 +86,19 @@ function cleanupLeftovers(filePath: string) {
   } catch {}
 }
 
+const ARIA2_TEMP_ROOT = '.downvid-aria2'
+
+/** aria2 稀疏片段按任务隔离：共用一个目录时失败与放弃的任务会无限堆积，也无法安全清理。 */
+export function aria2TempDir(outputDir: string, taskId: string): string {
+  return path.join(outputDir, ARIA2_TEMP_ROOT, taskId.replace(/[^\w-]/g, '_') || 'task')
+}
+
+/** 完成后只删本任务的片段目录；暂停 / 失败保留续传数据。根目录空了顺手移除。 */
+export function removeAria2TempDir(outputDir: string, taskId: string) {
+  try { fs.rmSync(aria2TempDir(outputDir, taskId), { recursive: true, force: true }) } catch {}
+  try { fs.rmdirSync(path.join(outputDir, ARIA2_TEMP_ROOT)) } catch {}
+}
+
 /**
  * 组装 yt-dlp 参数。
  *
@@ -167,7 +180,7 @@ export function buildYtdlpArgs(options: DownloadOptions, outputDir: string, ctx:
     args.push('--downloader', `http:${ctx.aria2Path}`, '--downloader', 'dash,m3u8:native',
       '--downloader-args', `aria2c:--no-conf=true --max-connection-per-server=${connections} --split=${connections} --min-split-size=1M --file-allocation=none --max-tries=3 --retry-wait=2 --connect-timeout=15 --timeout=30 --auto-save-interval=1 --check-certificate=true --enable-color=false --human-readable=false --truncate-console-readout=false --summary-interval=1`)
     // 隔离 aria2 稀疏片段；更换引擎时不能被原生顺序下载器误认为连续数据。
-    args.push('--paths', `home:${outputDir}`, '--paths', `temp:${path.join(outputDir, '.downvid-aria2')}`)
+    args.push('--paths', `home:${outputDir}`, '--paths', `temp:${aria2TempDir(outputDir, options.taskId)}`)
   }
 
   if (isYoutube && ctx.jsRuntime) {
@@ -423,6 +436,7 @@ async function executeYtdlpDownload(options: DownloadOptions, outputDir: string,
   }
 
   if (state.downloadedFile) cleanupLeftovers(state.downloadedFile)
+  removeAria2TempDir(outputDir, options.taskId)
   sendDownloadProgress({ taskId: options.taskId, url: options.url, percent: 100, status: 'completed' })
 
   return { code, stderr, failedBrowsers, filePath: state.downloadedFile, paused: false }

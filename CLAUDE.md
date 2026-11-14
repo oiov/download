@@ -268,7 +268,9 @@ A Go sidecar resolves them at startup, "prefer the machine's own, download only 
 Douyin and Kuaishou have bespoke parsers: platform API first, headless `puppeteer-core` (launched via
 `electron/utils/browser.ts`) driving a *system-installed* Chrome/Edge as fallback. Every failure is
 swallowed by an empty `catch` and falls through to `parseWithYtdlp`. When debugging a parse bug, check
-which branch actually ran — the errors are invisible.
+which branch actually ran — the errors are invisible. The only exception is a Douyin short link redirected
+to the home page (`DouyinLinkError`): it reports a dead link or missing login instead of yt-dlp's `Unsupported URL`.
+In automatic Cookie mode the Douyin direct parser reuses the browser Cookie snapshot (never on the public server).
 
 ### Download has two entirely separate paths
 
@@ -294,8 +296,8 @@ lists can be asserted without spawning anything (`tests/ytdlp-args.test.ts`).
 
 Optional aria2c (>=1.36) is detected by `electron/download/aria2.ts` via manual path, PATH,
 Scoop/WinGet and common install paths. It is neither auto-installed nor a required runtime dependency.
-Only HTTP transfers use it; HLS/DASH stay native. Temporary pieces live under `.downvid-aria2`
-and a paused task keeps its selected engine, preventing sparse pieces from being treated as sequential data.
+Only HTTP transfers use it; HLS/DASH stay native. Temporary pieces live under a per-task `.downvid-aria2/<taskId>`,
+removed only for that task on completion, and a paused task keeps its selected engine, preventing sparse pieces from being treated as sequential data.
 The `acceleration` settings field contains enabled/maxConnections/aria2Path.
 
 Formats are built by the pure `electron/parsers/formats.ts`. Three regressions it guards (all
@@ -342,13 +344,13 @@ and refills the queue.
   there, which is what makes a managed-dir install work.
 - YouTube needs an installed Node / Deno; `checkJsRuntime()` in `utils/js-runtime.ts` must never return the Electron binary.
   It probes asynchronously, requiring Node >=22 / Deno >=2.3, with a six-second total budget and one second per candidate.
-  It checks WinGet, Scoop and the user's `.deno/bin` as well as PATH
+  It checks WinGet, Scoop and the user's `.deno/bin` as well as PATH, then falls back to nvm, fnm, Volta, mise, asdf and keg-only Homebrew version directories,
   so a GUI process with an old PATH can still find the runtime. The sidecar does not install JS runtimes.
 - YouTube parsing keeps yt-dlp's default clients. Format/page-reload errors each allow one fallback, at most three rounds.
   Retries share one Cookie lifecycle; downloads reuse successful client arguments and the UI displays a recovery notice.
   `shared/parse-error.ts` emits only categories and validated versions; Issue drafts exclude raw output and environment details.
 - **Subtitle mode doesn't need ffmpeg** — it isn't resolved, and no `--ffmpeg-location` is passed.
-- Cookies go through `utils/cookies.ts` `runWithCookies`: manual file → none, or (auto) each installed
+- Cookies go through `utils/cookies.ts` `runWithCookies`: manual file (extension JSON exports are converted to a temporary Netscape file; the original is never handed to yt-dlp to rewrite) → none, or (auto) each installed
   browser → snapshot `userData/ytdlp-cookies/browser-cookies.txt` → none. It only moves to the next
   source on a cookie *load* error (`isCookieError`), never on auth errors; an exception while
   preparing a source only skips that source. Downloads prefer a fresh (<30 min) snapshot to match the
@@ -474,6 +476,7 @@ under `## [Unreleased]`. When releasing, rewrite it to `## [x.y.z] - <date>` and
 - 服务端负责全局队列和匿名会话隔离，不能公开桌面管理 IPC；仅接受服务端解析出的格式。成品经 /api/files/:id 授权交付。
 
 - 在线页默认英文 /app/，中文 /zh/app/，其余语言与 shared/site-locales.json 一致；旧 /zh-cn/ 永久跳转到 /zh/。公开说明与表单共用导航，HTML 可索引，私有 /api/ 保持 noindex。浏览器额外七语词条位于 src/i18n/web-locales.json，账户页面七语词条位于 src/i18n/account-locales.json（管理后台专用词条回退英文），新增键须同步并通过 lint:i18n。
+
 
 - Web 队列以真实下载调用收尾为释放槽位和删除目录的依据，不能只看 paused/error 状态。停止服务必须等待下载、上传及正在解析的请求。
 - 容器使用清单生成器提供的 `YtDlpTag` 与 `YtDlpZipappSHA256`，下载校验后才能执行；保留非 root、发行版 ffmpeg 和 local/R2 存储，不引入上游品牌或架构迁移。

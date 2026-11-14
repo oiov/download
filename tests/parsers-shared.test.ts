@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { estimateFileSize, parseCookiesFile, buildCookieHeader, DOUYIN_COOKIE_DOMAINS, type CookieItem } from '../electron/parsers/shared'
+import { DouyinLinkError, douyinVideoId, douyinVideoIdFromRedirect, estimateFileSize, parseCookiesFile, parseCookieText, toNetscapeCookies, buildCookieHeader, DOUYIN_COOKIE_DOMAINS, type CookieItem } from '../electron/parsers/shared'
 
 /**
  * 平台解析器共用工具。
@@ -74,6 +74,33 @@ describe('parseCookiesFile', () => {
   it('文件不存在时返回空数组而非抛错（调用方据此退化为无 Cookie 请求）', () => {
     expect(parseCookiesFile('/definitely/not/here/cookies.txt')).toEqual([])
   })
+
+  it('保留 #HttpOnly_ 前缀的 Cookie（抖音 sessionid 就是 HttpOnly）', () => {
+    const cookies = parseCookieText('#HttpOnly_.douyin.com\tTRUE\t/\tTRUE\t0\tsessionid\tabc\n# 普通注释\n')
+    expect(cookies).toHaveLength(1)
+    expect(cookies[0]).toMatchObject({ domain: '.douyin.com', name: 'sessionid', value: 'abc' })
+  })
+
+  it('解析浏览器扩展导出的 JSON 数组', () => {
+    const cookies = parseCookiesFile(writeTemp(JSON.stringify([
+      { domain: 'douyin.com', hostOnly: false, name: 'ttwid', path: '/', secure: true, expirationDate: 1793010826.5, value: '1%7Cabc' },
+      { domain: 'www.douyin.com', hostOnly: true, name: 'sid', value: 'x' },
+      { domain: '.douyin.com', name: 'bad', value: 'a\tb' },
+    ])))
+    expect(cookies).toEqual([
+      { domain: '.douyin.com', includeSubdomains: true, path: '/', secure: true, expiry: 1793010826, name: 'ttwid', value: '1%7Cabc' },
+      { domain: 'www.douyin.com', includeSubdomains: false, path: '/', secure: false, expiry: 0, name: 'sid', value: 'x' },
+    ])
+    expect(buildCookieHeader(cookies, DOUYIN_COOKIE_DOMAINS)).toBe('ttwid=1%7Cabc; sid=x')
+  })
+
+  it('JSON 转出的 Netscape 文本可被原样解析回来', () => {
+    const cookies = parseCookieText('[{"domain":".douyin.com","name":"a","value":"1","secure":true}]')
+    const text = toNetscapeCookies(cookies)
+    expect(text.startsWith('# Netscape HTTP Cookie File\n')).toBe(true)
+    expect(text).toContain('.douyin.com\tTRUE\t/\tTRUE\t0\ta\t1')
+    expect(parseCookieText(text)).toEqual(cookies)
+  })
 })
 
 describe('buildCookieHeader', () => {
@@ -116,3 +143,21 @@ function writeTemp(content: string): string {
   fs.writeFileSync(file, content)
   return file
 }
+
+describe('抖音短链跳转', () => {
+  it('从视频页与网页版弹层链接取 ID', () => {
+    expect(douyinVideoId('https://www.douyin.com/video/7300000000000000001?previous_page=app')).toBe('7300000000000000001')
+    expect(douyinVideoId('https://www.douyin.com/?modal_id=7300000000000000002')).toBe('7300000000000000002')
+    expect(douyinVideoIdFromRedirect('https://www.douyin.com/discover?modal_id=7300000000000000003', false)).toBe('7300000000000000003')
+  })
+
+  it('跳到首页时直接给出结论，不再落到 yt-dlp 的 Unsupported URL', () => {
+    expect(() => douyinVideoIdFromRedirect('https://www.douyin.com/', true)).toThrow(DouyinLinkError)
+    expect(() => douyinVideoIdFromRedirect('https://www.douyin.com/', true)).toThrow('[[parse-error:not-found]]')
+    expect(() => douyinVideoIdFromRedirect('https://www.douyin.com/?recommend=1', false)).toThrow('[[parse-error:authentication]]')
+  })
+
+  it('跳到图文等其他页面时交回原有后备解析', () => {
+    expect(douyinVideoIdFromRedirect('https://www.douyin.com/note/7300000000000000004', false)).toBeNull()
+  })
+})

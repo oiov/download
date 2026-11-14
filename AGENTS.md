@@ -283,7 +283,9 @@ libmp3lame / aac / libx264。**代价**：上游不公布校验值，`deps:manif
 
 抖音/快手有专属解析器（`electron/parsers/`）：平台 API 优先，headless `puppeteer-core`
 驱动系统已安装的 Chrome/Edge（`electron/utils/browser.ts`）作为 fallback。
-**每次失败都被空 `catch` 吞掉**，最终落到 `parseWithYtdlp`。
+**每次失败都被空 `catch` 吞掉**，最终落到 `parseWithYtdlp`。唯一例外是抖音短链被重定向到首页
+（`DouyinLinkError`）：直接报失效或缺登录态，否则 yt-dlp 只会回 `Unsupported URL`。
+自动 Cookie 模式下，抖音直连解析复用浏览器 Cookie 快照（公共服务器不借用）。
 调试解析 bug 时注意哪个分支实际运行了——错误在这里是不可见的。
 
 ### 两条完全独立的下载路径
@@ -308,7 +310,7 @@ libmp3lame / aac / libx264。**代价**：上游不公布校验值，`deps:manif
 
 可选 aria2c（>=1.36）由 `electron/download/aria2.ts` 探测手动路径、PATH、Scoop/WinGet 等位置，
 不自动安装、不加入必需依赖清单。仅接管 yt-dlp 的 HTTP 下载；HLS/DASH 保持原生。
-aria2 临时片段隔离在输出目录 `.downvid-aria2` 中，同一暂停任务固定引擎，避免稀疏片段被顺序下载器误用。
+aria2 临时片段按任务隔离在输出目录 `.downvid-aria2/<taskId>` 中，完成后只删本任务目录；同一暂停任务固定引擎，避免稀疏片段被顺序下载器误用。
 
 - **`progress.ts`**：两条路径共用的进度广播与节流（每 taskId 最多 200ms 一次 IPC）。
   进度格式化只在这里定义，不要再各写一份。
@@ -352,12 +354,13 @@ Windows 使用 `taskkill /T /F`，确认整树停止且下载调用收尾后才�
 - YouTube 需要实际安装的 Node / Deno；`utils/js-runtime.ts` 的 `checkJsRuntime()`
   是异步执行探测，校验 Node >=22 / Deno >=2.3；总预算 6 秒，每个候选至多 1 秒。
   不得返回 Electron 二进制。除 PATH 外也查 WinGet、Scoop、用户 `.deno/bin` 等目录，
+  最后兜底 nvm、fnm、Volta、mise、asdf、keg-only Homebrew 的版本目录，
   避免 GUI 应用继承旧 PATH 时漏检；运行依赖侧车不会自动安装 JS 运行时。
 - YouTube 解析默认沿用 yt-dlp 客户端；格式/页面重载错误各允许一次回退，至多三轮。
   回退在同一次 Cookie 生命周期内执行，下载沿用成功的客户端参数，界面显示恢复提示。
   `shared/parse-error.ts` 仅输出类别和验证过的版本；Issue 草稿不包含原始输出或环境信息。
 - **字幕模式不需要 ffmpeg**，因此不强制解析它，也不传 `--ffmpeg-location`。
-- Cookie 经 `utils/cookies.ts` 的 `runWithCookies`：手动文件 → 无；自动模式依次尝试各已安装
+- Cookie 经 `utils/cookies.ts` 的 `runWithCookies`：手动文件（扩展导出的 JSON 先转成临时 Netscape 文件，原文件不交给 yt-dlp 改写）→ 无；自动模式依次尝试各已安装
   浏览器 → 快照 `userData/ytdlp-cookies/browser-cookies.txt` → 无。仅在 cookie **读取**错误
   （`isCookieError`）时切换来源，鉴权错误不切换；准备某个来源时出现异常只跳过该来源。
   下载优先使用 30 分钟内的快照，与解析保持一致。浏览器 Cookie 读取失败时，错误信息在
@@ -482,6 +485,7 @@ CHANGELOG 用 `## [Unreleased]` 段落累积改动。发布时再一次性改成
 - 服务端负责全局队列和匿名会话隔离，不能公开桌面管理 IPC；仅接受服务端解析出的格式。成品经 /api/files/:id 授权交付。
 
 - 在线页默认英文 /app/，中文 /zh/app/，其余语言与 shared/site-locales.json 一致；旧 /zh-cn/ 永久跳转到 /zh/。公开说明与表单共用导航，HTML 可索引，私有 /api/ 保持 noindex。浏览器额外七语词条位于 src/i18n/web-locales.json，账户页面七语词条位于 src/i18n/account-locales.json（管理后台专用词条回退英文），新增键须同步并通过 lint:i18n。
+
 
 - Web 队列以真实下载调用收尾为释放槽位和删除目录的依据，不能只看 paused/error 状态。停止服务必须等待下载、上传及正在解析的请求。
 - 容器使用清单生成器提供的 `YtDlpTag` 与 `YtDlpZipappSHA256`，下载校验后才能执行；保留非 root、发行版 ffmpeg 和 local/R2 存储，不引入上游品牌或架构迁移。

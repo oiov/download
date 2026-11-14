@@ -4,6 +4,8 @@ import { isDouyinUrl, isKuaishouUrl, ensureDownloadDir } from '../utils/platform
 import { parseDouyinWithAPI, parseDouyinWithPuppeteer } from '../parsers/douyin'
 import { parseKuaishouWithAPI, parseKuaishouWithPuppeteer } from '../parsers/kuaishou'
 import { parseWithYtdlp } from '../parsers/ytdlp'
+import { DouyinLinkError } from '../parsers/shared'
+import { browserCookieSnapshot } from '../utils/cookies'
 import { activeDownloads } from '../store'
 import { downloadDirectFile } from '../download/direct'
 import { runYtdlpDownload, pauseDownload, assertDownloadCanStart } from '../download/ytdlp'
@@ -31,9 +33,12 @@ export function registerDownloadIpc() {
       // 抖音/快手有专属解析器：平台 API 优先，headless 浏览器兜底。
       // 每次失败都被空 catch 吞掉后落到 yt-dlp，因此调试解析问题时
       // 要先确认究竟是哪个分支实际运行了——错误在这里是不可见的。
+      // 例外是短链已确定失效或缺登录态：后备解析只会把它误报成「不支持该网站」。
       if (isDouyinUrl(url)) {
-        try { return await parseDouyinWithAPI(url, cookiesFile) } catch {
-          try { return await parseDouyinWithPuppeteer(url, cookiesFile) } catch {}
+        const directCookies = cookiesFile || browserCookieSnapshot()
+        try { return await parseDouyinWithAPI(url, directCookies) } catch (e) {
+          if (e instanceof DouyinLinkError) throw e
+          try { return await parseDouyinWithPuppeteer(url, directCookies) } catch {}
         }
       }
       if (isKuaishouUrl(url)) {

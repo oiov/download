@@ -84,7 +84,7 @@ try {
       const result = await run(ytdlpPath, [...args, '--ignore-config', url])
       assert.ok(result.stdout.includes('[dvfile]'), '最终路径事件缺失')
     }, output, 8)
-    assert.equal(fs.existsSync(path.join(temp, '.downvid-aria2', 'aria2.mp4.part.aria2')), false)
+    assert.equal(fs.existsSync(path.join(temp, '.downvid-aria2', 'test', 'aria2.mp4.part.aria2')), false)
     console.log('通过：真实 aria2/yt-dlp 调用、分段、最终路径、片段隔离与逐字节完整性')
 
     intervalMs = 40
@@ -99,7 +99,7 @@ try {
     const pauseOptions = { ...options, taskId: 'pause-real-aria2', filenameTemplate: 'paused-aria2',
       acceleration: { ...settings(8), aria2Path } }
     const running = runtime.runYtdlpDownload(pauseOptions, temp)
-    const part = path.join(temp, '.downvid-aria2', 'paused-aria2.mp4.part')
+    const part = path.join(temp, '.downvid-aria2', pauseOptions.taskId, 'paused-aria2.mp4.part')
     const deadline = Date.now() + 20000
     while (!(fs.existsSync(`${part}.aria2`) && active > 1)) {
       assert.ok(Date.now() < deadline, '未出现 aria2 续传检查点')
@@ -117,6 +117,7 @@ try {
     assert.equal(resumed.paused, false)
     assert.deepEqual(fs.readFileSync(resumed.filePath), data)
     assert.ok(sentBytes < data.length, `续传重新传输了完整文件：${sentBytes}`)
+    assert.equal(fs.existsSync(path.dirname(part)), false, '完成后应清理本任务的 aria2 片段目录')
     console.log(JSON.stringify({ realAria2Resume: { bytesTransferredAfterResume: sentBytes, total: data.length, completeFileMatches: true } }))
   } else console.log('跳过外部引擎：设置 DOWNVID_TEST_ARIA2 和 DOWNVID_TEST_YTDLP 后运行')
 

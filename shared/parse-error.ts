@@ -9,12 +9,22 @@ export function classifyParseError(raw: string): ParseErrorKind {
   if (/The page needs to be reloaded/i.test(raw)) return 'page-reload'
   if (/challenge.*fail|signature.*fail|No supported JavaScript runtime/i.test(raw)) return 'challenge-failed'
   if (/confirm (?:you(?:'|’)re|you are) not a bot|verify (?:that )?(?:you(?:'|’)re|you are) (?:human|a human|not a bot)|captcha/i.test(raw)) return 'verification-required'
-  if (/Sign in|private video|登录|authentication/i.test(raw)) return 'authentication'
+  // 抖音 / 快手无 Cookie 时 yt-dlp 只回 `Fresh cookies (not necessarily logged in) are needed`
+  if (/Sign in|private video|登录|authentication|cookies? .{0,40}needed/i.test(raw)) return 'authentication'
   if (/429|Too Many Requests/i.test(raw)) return 'rate-limit'
   if (/403|Forbidden/i.test(raw)) return 'access-denied'
   if (/timed? out|timeout|network|Unable to download.*page|ConnectionError/i.test(raw)) return 'network'
   if (/Video unavailable|404|not found|已被删除/i.test(raw)) return 'not-found'
   return 'unknown'
+}
+
+/**
+ * 在通用分类上补站点上下文：抖音 / 快手的分享短链对匿名请求会重定向到首页，
+ * yt-dlp 只能回 `Unsupported URL`。这两个站点本身受支持，真正缺的是登录态。
+ */
+export function classifyParseErrorForSite(raw: string, cookieGatedSite: boolean): ParseErrorKind {
+  const kind = classifyParseError(raw)
+  return kind === 'unsupported-url' && cookieGatedSite ? 'authentication' : kind
 }
 
 export const PARSE_MESSAGES: Record<ParseErrorKind, string> = {

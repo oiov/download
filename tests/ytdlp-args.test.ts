@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
+import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
-import { buildYtdlpArgs, buildFormatSelector, type DownloadOptions } from '../electron/download/ytdlp'
+import { aria2TempDir, buildYtdlpArgs, buildFormatSelector, removeAria2TempDir, type DownloadOptions } from '../electron/download/ytdlp'
 
 /**
  * yt-dlp 参数组装。
@@ -153,7 +155,23 @@ describe('buildYtdlpArgs', () => {
     expect(valueAfter(args, '--downloader-args')).toContain('--check-certificate=true')
     expect(valueAfter(args, '--concurrent-fragments')).toBe('12')
     expect(valueAfter(args, '-o')).toBe('%(title)s.%(ext)s')
-    expect(args).toContain(`temp:${path.join(OUT_DIR, '.downvid-aria2')}`)
+    expect(args).toContain(`temp:${path.join(OUT_DIR, '.downvid-aria2', 't1')}`)
+  })
+
+  it('aria2 片段按任务隔离，完成后只清理本任务', () => {
+    expect(aria2TempDir(OUT_DIR, '../x')).toBe(path.join(OUT_DIR, '.downvid-aria2', '___x'))
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'downvid-aria2-'))
+    const mine = aria2TempDir(out, 'done')
+    const other = aria2TempDir(out, 'paused')
+    for (const dir of [mine, other]) {
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(path.join(dir, 'video.mp4.part'), 'x')
+    }
+    removeAria2TempDir(out, 'done')
+    expect(fs.existsSync(mine)).toBe(false)
+    expect(fs.existsSync(path.join(other, 'video.mp4.part'))).toBe(true)
+    removeAria2TempDir(out, 'paused')
+    expect(fs.existsSync(path.join(out, '.downvid-aria2'))).toBe(false)
   })
 
   it('关闭加速、未发现 aria2 或字幕模式不调用外部引擎', () => {
