@@ -254,6 +254,8 @@ jobs:
           node-version: 22
 
       - uses: pnpm/action-setup@v6
+        with:
+          version: 11
 
       - name: 安装 Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
@@ -322,6 +324,8 @@ jobs:
           node-version: 22
 
       - uses: pnpm/action-setup@v6
+        with:
+          version: 11
 
       - name: 安装 Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0

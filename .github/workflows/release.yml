@@ -366,6 +366,8 @@ jobs:
           node-version: 22
 
       - uses: pnpm/action-setup@v6
+        with:
+          version: 11
 
       - name: 安装 Linux 构建依赖
         if: matrix.os == 'ubuntu-22.04'

@@ -286,6 +286,8 @@ jobs:
           node-version: 22
 
       - uses: pnpm/action-setup@v6
+        with:
+          version: 11
 
       # Wails v2.16 的 cgo 默认找 webkit2gtk-4.0；ubuntu-24.04 只剩 4.1，所以固定 22.04。
       - name: 安装 GTK / WebKit 构建依赖
@@ -360,6 +362,8 @@ jobs:
           node-version: 22
 
       - uses: pnpm/action-setup@v6
+        with:
+          version: 11
 
       # Wails v2.16 的 cgo 默认找 webkit2gtk-4.0；ubuntu-24.04 只剩 4.1，所以固定 22.04。
       - name: 安装 GTK / WebKit 构建依赖

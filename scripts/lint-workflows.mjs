@@ -135,6 +135,12 @@ for (const file of files) {
     if (/\bgo\s+(build|test|vet|version)\b/.test(commandLines) && !usesAction(job.body, 'actions/setup-go')) {
       problems.push(`${where} 用了 go 但没有 actions/setup-go`)
     }
+    // 根 package.json 没有 packageManager 字段：漏写 version 时 action 直接报
+    // 「No pnpm version is specified」（新增 Wails 客户端 job 时真实发生过）
+    const pnpmSetups = job.body.match(/uses:\s*pnpm\/action-setup@\S+(?:\n\s+with:\s*\n\s+version:\s*\S+)?/g) || []
+    if (pnpmSetups.some((step) => !/version:/.test(step))) {
+      problems.push(`${where} 的 pnpm/action-setup 没有指定 version（仓库未声明 packageManager）`)
+    }
     if (!/timeout-minutes:/.test(job.body)) {
       problems.push(`${where} 没有 timeout-minutes（卡住会占满默认 6 小时配额）`)
     }
