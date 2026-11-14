@@ -4,7 +4,7 @@ import type { Jobs } from './jobs'
 import { HttpError, json, privateHeaders, redirect } from './http'
 import { SeeReports, SeeError, seeFilter } from './see-report'
 import { dashboardPage } from './see-page'
-import { page, table, esc, bytes, date, stateLabel } from './platform-page'
+import { page, table, esc, bytes, date, stateLabel, heading } from './platform-page'
 import { accountTranslator } from '../../src/i18n/account'
 import { DAY } from './platform-store'
 import { exportReport } from './report-export'
@@ -44,7 +44,7 @@ export function createAdmin(auth: Auth, jobs: Jobs, root: string, reports = new 
       requests.set(identity.owner, bucket)
       if (++bucket.count > 60) throw new HttpError(429, 'rate-limit', 60)
       const current = url.pathname
-      const html = (title: Parameters<typeof page>[0], content: string) => page(title, content, 'zh', true, current)
+      const html = (title: Parameters<typeof page>[0], content: string) => page(title, content, 'zh', true, current, { user: { name: identity.account!.name, email: identity.account!.email } })
       if (current === '/admin/downloads' || /^\/admin\/downloads\/[^/]+$/.test(current)) {
         const allowed = ['q', 'owner', 'status', 'kind', 'days', 'page']
         if ([...url.searchParams.keys()].some(key => !allowed.includes(key) || url.searchParams.getAll(key).length !== 1)) throw new HttpError(400, 'invalid-filter')
@@ -64,7 +64,7 @@ export function createAdmin(auth: Auth, jobs: Jobs, root: string, reports = new 
         const select = (name: string, label: Parameters<typeof t>[0], options: [string, string][], value: string) => `<label>${esc(t(label))}<select name="${name}">${options.map(([key, title]) => `<option value="${key}"${key === value ? ' selected' : ''}>${esc(title)}</option>`).join('')}</select></label>`
         const filters = `<form class="filters" method="get"><label>${esc(t('historySearch'))}<input type="search" name="q" maxlength="120" value="${esc(q)}"></label><label>${esc(t('historyOwner'))}<input name="owner" maxlength="120" value="${esc(owner)}"></label>${select('status', 'status', [['all', t('anyStatus')], ...['pending', 'downloading', 'completed', 'error', 'paused'].map(value => [value, value === 'paused' ? t('cancelledTask') : stateLabel(value, 'zh')] as [string, string])], status)}${select('kind', 'accountKind', [['all', t('anyUser')], ['account', t('registered')], ['guest', t('guest')]], kind)}${select('days', 'period', [['1', t('day')], ['7', t('week')], ['30', t('month')], ['90', t('quarter')], ['all', t('all')]], days)}<button class="primary">${esc(t('filter'))}</button></form>`
         const href = (n: number) => { const value = new URLSearchParams(search); value.set('page', String(n)); return '/admin/downloads?' + value }
-        send(200, html('downloadHistory', `<h1>${esc(t('downloadHistory'))} <span class="status">${data.count}</span></h1><p class="intro">${esc(t('historyIntro'))}</p>${filters}${downloadList(data.records, jobs, search.toString())}<nav class="pager">${pageNumber > 1 ? `<a href="${esc(href(pageNumber - 1))}">${esc(t('previous'))}</a>` : '<span></span>'}${pageNumber * 25 < data.count ? `<a href="${esc(href(pageNumber + 1))}">${esc(t('next'))}</a>` : ''}</nav><p class="note">${esc(t('historyNote').replace('{days}', String(jobs.config.historyRetentionDays)))}</p>`)); return true
+        send(200, html('downloadHistory', `${heading(esc(t('downloadHistory')) + ` <span class="count">${data.count}</span>`, esc(t('historyIntro')))}${filters}<section class="card flush">${downloadList(data.records, jobs, search.toString())}</section><nav class="pager">${pageNumber > 1 ? `<a href="${esc(href(pageNumber - 1))}">${esc(t('previous'))}</a>` : '<span></span>'}${pageNumber * 25 < data.count ? `<a href="${esc(href(pageNumber + 1))}">${esc(t('next'))}</a>` : ''}</nav><p class="note">${esc(t('historyNote').replace('{days}', String(jobs.config.historyRetentionDays)))}</p>`)); return true
       }
       if (['/admin/analytics', '/admin/analytics/report.json', '/admin/analytics/report.csv', '/admin/analytics/report.md'].includes(current)) {
         const filter = seeFilter(url.searchParams)
@@ -85,8 +85,9 @@ export function createAdmin(auth: Auth, jobs: Jobs, root: string, reports = new 
       }
       if (current === '/admin' || current === '/admin/') {
         const total = (await read({ mode: 'operations' })).accountCount
-        const rows = [t('totals') + ': ' + total, t('queue') + ': ' + [...jobs.jobs.values()].filter(job => job.status === 'pending').length, t('running') + ': ' + jobs.running, t('parsing') + ': ' + jobs.parsing]
-        send(200, html('overview', `<h1>${esc(t('overview'))}</h1><dl class="rows">${rows.map(value => `<div><dt>${esc(value)}</dt></div>`).join('')}</dl><section class="section"><a class="button" href="/admin/users">${esc(t('users'))}</a> <a class="button" href="/admin/analytics">${esc(t('analytics'))}</a></section>`)); return true
+        const rows: [Parameters<typeof t>[0], number][] = [['totals', total], ['queue', [...jobs.jobs.values()].filter(job => job.status === 'pending').length], ['running', jobs.running], ['parsing', jobs.parsing]]
+        const shortcuts = ([['/admin/users', 'users'], ['/admin/downloads', 'downloadHistory'], ['/admin/analytics', 'analytics'], ['/admin/operations', 'operations']] as const).map(([href, key]) => `<a class="link-card" href="${href}"><strong>${esc(t(key))} →</strong></a>`).join('')
+        send(200, html('overview', `${heading(esc(t('overview')), esc(t('adminIntro')))}<dl class="stat-grid">${rows.map(([key, value]) => `<div class="usage-card"><dt>${esc(t(key))}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl><div class="link-grid">${shortcuts}</div>`)); return true
       }
       if (current === '/admin/operations') {
         const data = await read({ mode: 'operations' })
@@ -97,7 +98,7 @@ export function createAdmin(auth: Auth, jobs: Jobs, root: string, reports = new 
           [t('analyticsState'), stateLabel(data.analytics.status, 'zh')], [t('analyticsMigration'), data.analytics.legacyImportComplete === undefined ? t('unknown') : t(data.analytics.legacyImportComplete ? 'enabled' : 'closed')],
           [t('analyticsRecords'), data.analytics.records ?? t('unknown')], [t('lastEvent'), date(data.analytics.lastEventAt)], [t('malformed'), data.analytics.malformedLines ?? t('unknown')],
           [t('writeFailures'), data.analytics.health?.writeFailures ?? t('unknown')], [t('dropped'), data.analytics.health?.dropped ?? t('unknown')]]
-        send(200, html('operations', `<h1>${esc(t('operations'))}</h1><p class="intro">${esc(t('operationNote'))}</p><section class="section">${table([t('kind'), t('status')], values.map(row => row.map(esc)))}</section>`)); return true
+        send(200, html('operations', `${heading(esc(t('operations')), esc(t('operationNote')))}<section class="card flush">${table([t('kind'), t('status')], values.map(row => row.map(esc)))}</section>`)); return true
       }
       if (current === '/admin/users' || /^\/admin\/users\/[^/]+$/.test(current)) {
         if ([...url.searchParams.keys()].some(key => !['q', 'page', 'days'].includes(key) || url.searchParams.getAll(key).length !== 1)) throw new HttpError(400, 'invalid-filter')
@@ -110,14 +111,14 @@ export function createAdmin(auth: Auth, jobs: Jobs, root: string, reports = new 
           const result = await read({ mode: 'users', q, offset: (pageNumber - 1) * 25, since, until })
           const rows = result.users.map((user: Account & { plan: string; usage: ReturnType<typeof store.usage> }) => [`<a class="identity" href="/admin/users/${encodeURIComponent(user.id)}?days=${days}">${esc(user.name)}</a><div class="status">${esc(user.email)}</div>`, esc(t(user.disabled ? 'disabled' : 'active')), esc(t(user.plan as 'free')), String(user.usage.downloads), bytes(user.usage.generatedBytes), bytes(user.usage.deliveredBytes), esc(date(user.last_active))])
           const href = (n: number) => '/admin/users?' + new URLSearchParams({ q, page: String(n), days })
-          send(200, html('users', `<h1>${esc(t('users'))} <span class="status">${result.count}</span></h1><p class="intro">${esc(t('userIntro'))}</p>${filter}${table(['user', 'status', 'plan', 'downloads', 'generated', 'delivered', 'lastActive'].map(key => t(key as 'user')), rows)}<nav class="pager">${pageNumber > 1 ? `<a href="${esc(href(pageNumber - 1))}">${esc(t('previous'))}</a>` : '<span></span>'}${pageNumber * 25 < result.count ? `<a href="${esc(href(pageNumber + 1))}">${esc(t('next'))}</a>` : ''}</nav><p class="note">${esc(t('usageNote'))}</p>`)); return true
+          send(200, html('users', `${heading(esc(t('users')) + ` <span class="count">${result.count}</span>`, esc(t('userIntro')))}${filter}<section class="card flush">${table(['user', 'status', 'plan', 'downloads', 'generated', 'delivered', 'lastActive'].map(key => t(key as 'user')), rows)}</section><nav class="pager">${pageNumber > 1 ? `<a href="${esc(href(pageNumber - 1))}">${esc(t('previous'))}</a>` : '<span></span>'}${pageNumber * 25 < result.count ? `<a href="${esc(href(pageNumber + 1))}">${esc(t('next'))}</a>` : ''}</nav><p class="note">${esc(t('usageNote'))}</p>`)); return true
         }
         let owner: string
         try { owner = decodeURIComponent(current.slice('/admin/users/'.length)) } catch { throw new HttpError(400, 'invalid-user') }
         const data = await read({ mode: 'user', owner, since, until })
         if (!data) throw new HttpError(404, 'not-found')
         const { user, usage, events } = data
-        send(200, html('detail', `<a href="/admin/users">← ${esc(t('returned'))}</a><h1 class="identity">${esc(user.name)}</h1><p class="intro identity">${esc(user.email)}</p><p>${esc(t(data.plan as 'free'))} · ${esc(t(user.disabled ? 'disabled' : 'active'))} · ${esc(t('apiEnabled'))}: ${esc(t(store.beta(user) ? 'enabled' : 'closed'))}</p>${filter}<p class="section"><a class="button" href="/admin/downloads?owner=${encodeURIComponent(user.id)}&amp;days=all">${esc(t('downloadHistory'))}</a></p>${metrics(usage)}<dl class="rows"><div><dt>${esc(t('parses'))}</dt><dd>${usage.parses}</dd></div><div><dt>${esc(t('failed'))}</dt><dd>${usage.failed}</dd></div><div><dt>${esc(t('reserved'))}</dt><dd>${bytes(usage.reservedBytes)}</dd></div><div><dt>${esc(t('deliveryUnconfirmed'))}</dt><dd>${bytes(usage.uncertainDeliveryBytes)}</dd></div></dl><section class="section"><h2>${esc(t('userHistory'))}</h2>${table(['kind', 'status', 'created', 'bytes'].map(key => t(key as 'kind')), events.map((row: Record<string, unknown>) => [esc(t(({ parse: 'parses', download: 'downloads', delivery: 'delivered' } as const)[row.kind as 'parse'])), esc(stateLabel(row.status, 'zh')), esc(date(Number(row.at))), bytes(Number(row.bytes))]))}</section><p class="note">${esc(t('usageNote'))}</p>`)); return true
+        send(200, html('detail', `<a class="back" href="/admin/users">← ${esc(t('returned'))}</a>${heading(`<span class="identity">${esc(user.name)}</span>`, `${esc(user.email)} · ${esc(t(data.plan as 'free'))} · ${esc(t(user.disabled ? 'disabled' : 'active'))} · ${esc(t('apiEnabled'))}: ${esc(t(store.beta(user) ? 'enabled' : 'closed'))}`, `<a class="button" href="/admin/downloads?owner=${encodeURIComponent(user.id)}&amp;days=all">${esc(t('downloadHistory'))}</a>`)}${filter}${metrics(usage)}<dl class="rows"><div><dt>${esc(t('parses'))}</dt><dd>${usage.parses}</dd></div><div><dt>${esc(t('failed'))}</dt><dd>${usage.failed}</dd></div><div><dt>${esc(t('reserved'))}</dt><dd>${bytes(usage.reservedBytes)}</dd></div><div><dt>${esc(t('deliveryUnconfirmed'))}</dt><dd>${bytes(usage.uncertainDeliveryBytes)}</dd></div></dl><section class="card flush section"><div class="card-head"><h2>${esc(t('userHistory'))}</h2></div>${table(['kind', 'status', 'created', 'bytes'].map(key => t(key as 'kind')), events.map((row: Record<string, unknown>) => [esc(t(({ parse: 'parses', download: 'downloads', delivery: 'delivered' } as const)[row.kind as 'parse'])), esc(stateLabel(row.status, 'zh')), esc(date(Number(row.at))), bytes(Number(row.bytes))]))}</section><p class="note">${esc(t('usageNote'))}</p>`)); return true
       }
       throw new HttpError(404, 'not-found')
     } catch (error) {

@@ -1,3 +1,5 @@
+import locales from '../shared/site-locales.json' with { type: 'json' }
+
 // 公开页面的九语言账户入口；额度与价格始终从服务端读取，不写死营销数字。
 export const accountCopy = [
   ['Account', 'Plans & limits', 'A simple start. Room to grow.', 'Start anonymously with public links. Sign in to keep access to claimed tasks across devices, see your usage, or join the API beta.', 'Explore plans', 'Developer API', 'An account does not unlock restricted sources or extend file retention.'],
@@ -21,15 +23,17 @@ const loginCopy = [
   ['로그인', '대시보드', 'Keep Video 로그인', '다운로드, 사용량 및 구독을 관리하세요.', 'Google로 계속하기', '로그인 없이 계속하기', '닫기', '지금은 로그인할 수 없습니다. 나중에 다시 시도하세요.', '로그인하지 못했습니다. 다시 시도하세요.'],
   ['Войти', 'Панель', 'Войти в Keep Video', 'Управляйте загрузками, использованием и подпиской.', 'Продолжить с Google', 'Продолжить без входа', 'Закрыть', 'Вход временно недоступен. Повторите позже.', 'Не удалось войти. Повторите попытку.'],
 ]
+// 账户页面按站点前缀选择语言，登录后回到同一语言的控制面板。
+const langQuery = lang => '?lang=' + (locales[lang].prefix || 'en')
 export function accountLinks(lang) {
   const text = loginCopy[lang]
   return `<button type="button" class="account-link" data-login-trigger data-dashboard-label="${text[1]}">${text[0]}</button>`
 }
 export function loginDialog(lang) {
-  const text = loginCopy[lang], suffix = lang === 1 ? '?lang=zh' : '?lang=en'
-  return `<dialog class="login-dialog" aria-labelledby="login-title" aria-describedby="login-description" data-dashboard="/dashboard${suffix}" data-unavailable="${text[7]}" data-error="${text[8]}"><button type="button" class="login-close" data-login-close aria-label="${text[6]}">×</button><div class="login-mark" aria-hidden="true">↗</div><h2 id="login-title">${text[2]}</h2><p id="login-description">${text[3]}</p><form action="/account/login${suffix}" method="post"><button type="submit" class="login-google"><img src="/assets/brand/google.svg" width="20" height="20" alt="">${text[4]}</button></form><p class="login-error" role="alert" hidden></p><button type="button" class="login-guest" data-login-close>${text[5]}</button></dialog>`
+  const text = loginCopy[lang], suffix = langQuery(lang)
+  return `<dialog class="login-dialog" aria-labelledby="login-title" aria-describedby="login-description" data-dashboard="/dashboard${suffix}" data-unavailable="${text[7]}" data-error="${text[8]}"><button type="button" class="login-close" data-login-close aria-label="${text[6]}">×</button><img class="login-mark" src="/assets/brand/frame-play.svg" width="48" height="48" alt=""><h2 id="login-title">${text[2]}</h2><p id="login-description">${text[3]}</p><form action="/account/login${suffix}" method="post"><button type="submit" class="login-google"><img src="/assets/brand/google.svg" width="20" height="20" alt="">${text[4]}</button></form><p class="login-error" role="alert" hidden></p><button type="button" class="login-guest" data-login-close>${text[5]}</button></dialog>`
 }
 export function accountSection(lang) {
-  const text = accountCopy[lang], suffix = lang === 1 ? '?lang=zh' : ''
+  const text = accountCopy[lang], suffix = locales[lang].prefix ? langQuery(lang) : ''
   return `<section class="account-section section"><div><h2>${text[2]}</h2><p>${text[3]}</p><p class="fineprint">${text[6]}</p></div><div class="account-actions"><a class="button" href="/pricing${suffix}">${text[4]} ↗</a><a class="text-link" href="/developers${suffix}">${text[5]} ↗</a></div></section>`
 }

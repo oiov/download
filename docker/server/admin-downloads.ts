@@ -43,5 +43,5 @@ export function downloadDetail(row: AdminDownload, jobs: Jobs, query: string) {
     ['elapsed', esc(seconds(row.finishedAt === null ? null : row.finishedAt - row.createdAt))], ['queueTime', esc(seconds(row.queueMs))], ['downloadTime', esc(seconds(row.downloadMs))], ['uploadTime', esc(seconds(row.uploadMs))],
     ['errorCategory', esc(row.errorCode || '—')], ['failureReason', esc(errorMessage(row.errorCode))],
   ]
-  return `<a href="/admin/downloads?${esc(query)}">← ${esc(t('returnedHistory'))}</a><h1>${esc(t('historyDetail'))}</h1>${row.legacy ? `<p class="notice">${esc(t('legacyHistory'))}</p>` : ''}<section class="section history-detail">${table([t('historyField'), t('historyValue')], fields.map(([key, value]) => [t(key), value]))}</section>`
+  return `<a class="back" href="/admin/downloads?${esc(query)}">← ${esc(t('returnedHistory'))}</a><h1>${esc(t('historyDetail'))}</h1>${row.legacy ? `<p class="notice">${esc(t('legacyHistory'))}</p>` : ''}<section class="card flush section history-detail">${table([t('historyField'), t('historyValue')], fields.map(([key, value]) => [t(key), value]))}</section>`
 }

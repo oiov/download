@@ -1,3 +1,5 @@
+import accountLocales from './account-locales.json'
+
 /** 账户与只读管理页面的独立词条，避免把服务端管理能力带入桌面。 */
 export const accountMessages = {
   'zh-CN': {
@@ -10,7 +12,7 @@ export const accountMessages = {
     claimTitle: '保留这个浏览器的任务', claimBody: '仅认领当前访客会话的任务与用量。认领后旧访客凭据失去访问权，文件有效期不变。', claim: '确认认领任务与用量',
     usage: '最近 24 小时用量', parses: '解析请求', downloads: '创建下载', completed: '成功下载', failed: '失败下载', generated: '成功成品大小', delivered: '实际交付流量',
     reserved: '处理中预留', limit: '额度', expiry: '文件有效期', hour: '小时', free: '免费账户', guest: '匿名使用', pro: 'Pro',
-    tasks: '未过期任务', title: '标题', status: '状态', created: '创建时间', expires: '到期时间', save: '保存到设备', empty: '暂无记录',
+    tasks: '下载任务', title: '标题', status: '状态', created: '创建时间', expires: '到期时间', save: '保存到设备', empty: '暂无记录',
     keys: 'API 密钥', keyNote: '密钥只在创建时显示一次，请安全保存。多个密钥共用账户额度。', beta: 'API 仅对获准内测的账户开放。',
     label: '名称', scopes: '权限', days: '有效天数', createKey: '创建密钥', revoke: '撤销', lastUsed: '最近使用', token: '请现在复制密钥；离开后不会再次显示。',
     purchase: '订阅 Pro', manage: '管理订阅', pending: '支付结果正在核验，请稍后刷新。权益以服务端收到的订阅状态为准。',
@@ -32,6 +34,7 @@ export const accountMessages = {
     operationNote: '只读快照，最多缓存 15 秒。迁移标记不代表人工核验已完成；目录扫描超时、缺库或读取失败显示未知。R2 总占用未实测。',
     accountId: '账户标识', hourlyParses: '每小时解析上限', retainedTasks: '保留任务上限', subscriptionDay: '天', subscriptionWeek: '周', subscriptionMonth: '月', subscriptionYear: '年', stateShm: '业务库 SHM 占用', analyticsShm: '统计库 SHM 占用',
     deliveryUnconfirmed: '中断交付的未确认预留',
+    summary: '概览', accountPage: '账户与订阅', tasksIntro: '仅显示未过期的任务；文件到期后无法再保存。', recentTasks: '最近任务', viewAll: '查看全部', currentPlan: '当前套餐', comparePlans: '对比套餐', startDownload: '开始下载', noTasks: '还没有未过期的任务。', newKey: '新建密钥', existingKeys: '已有密钥', profile: '账户信息', nameField: '姓名', email: '邮箱', accountMenu: '账户菜单', usageDetails: '统计口径', subscription: '订阅', viewDocs: '查看 API 文档', mainNav: '主导航', adminIntro: '服务当前负载与常用入口。', exportAs: '导出', language: '语言',
     statusPending: '等待中', statusDownloading: '下载中', statusCompleted: '已完成', statusError: '失败', statusPaused: '已暂停', statusRequested: '已请求', statusSuccess: '成功', statusStreaming: '交付中', statusAborted: '已中断', statusUncertain: '交付量未确认', statusActive: '有效', statusTrialing: '试用中', statusPastDue: '付款逾期', statusCanceled: '已取消', statusUnpaid: '未付款', statusIncomplete: '待完成付款', statusExpired: '已过期', statusAvailable: '可读取', statusMissing: '缺失', statusUnavailable: '暂不可用',
   },
   'en-US': {
@@ -44,7 +47,7 @@ export const accountMessages = {
     claimTitle: 'Keep this browser’s tasks', claimBody: 'Claim only the current guest session’s tasks and usage. Old guest credentials lose access after claiming. File expiration stays the same.', claim: 'Confirm claim of tasks and usage',
     usage: 'Usage in the last 24 hours', parses: 'Parse requests', downloads: 'Downloads created', completed: 'Completed downloads', failed: 'Failed downloads', generated: 'Completed file size', delivered: 'Bytes delivered',
     reserved: 'Reserved for active tasks', limit: 'Limit', expiry: 'File retention', hour: 'hours', free: 'Free account', guest: 'Guest', pro: 'Pro',
-    tasks: 'Unexpired tasks', title: 'Title', status: 'Status', created: 'Created', expires: 'Expires', save: 'Save to device', empty: 'No records yet',
+    tasks: 'Downloads', title: 'Title', status: 'Status', created: 'Created', expires: 'Expires', save: 'Save to device', empty: 'No records yet',
     keys: 'API keys', keyNote: 'Keys are shown only once. Store them safely. All keys share your account limits.', beta: 'The API is available only to approved beta accounts.',
     label: 'Name', scopes: 'Permissions', days: 'Valid days', createKey: 'Create key', revoke: 'Revoke', lastUsed: 'Last used', token: 'Copy this key now. It will not be shown again.',
     purchase: 'Subscribe to Pro', manage: 'Manage subscription', pending: 'Payment is being verified. Refresh shortly. Access follows the subscription status received by the server.',
@@ -66,10 +69,14 @@ export const accountMessages = {
     operationNote: 'Read-only snapshot cached for up to 15 seconds. Migration markers do not prove a manual audit. Timed-out directory scans, missing databases and read failures show unknown. Total R2 storage has not been measured.',
     accountId: 'Account ID', hourlyParses: 'Parses per hour', retainedTasks: 'Retained tasks', subscriptionDay: 'day', subscriptionWeek: 'week', subscriptionMonth: 'month', subscriptionYear: 'year', stateShm: 'Business SHM size', analyticsShm: 'Analytics SHM size',
     deliveryUnconfirmed: 'Unconfirmed interrupted delivery reservation',
+    summary: 'Overview', accountPage: 'Account & billing', tasksIntro: 'Only unexpired tasks are listed. Files cannot be saved after they expire.', recentTasks: 'Recent tasks', viewAll: 'View all', currentPlan: 'Current plan', comparePlans: 'Compare plans', startDownload: 'Start a download', noTasks: 'No unexpired tasks yet.', newKey: 'New key', existingKeys: 'Your keys', profile: 'Profile', nameField: 'Name', email: 'Email', accountMenu: 'Account menu', usageDetails: 'How usage is counted', subscription: 'Subscription', viewDocs: 'Read the API docs', mainNav: 'Main navigation', adminIntro: 'Current service load and common shortcuts.', exportAs: 'Export', language: 'Language',
     statusPending: 'Queued', statusDownloading: 'Downloading', statusCompleted: 'Completed', statusError: 'Failed', statusPaused: 'Paused', statusRequested: 'Requested', statusSuccess: 'Succeeded', statusStreaming: 'Streaming', statusAborted: 'Interrupted', statusUncertain: 'Delivery amount unconfirmed', statusActive: 'Active', statusTrialing: 'Trialing', statusPastDue: 'Past due', statusCanceled: 'Cancelled', statusUnpaid: 'Unpaid', statusIncomplete: 'Payment incomplete', statusExpired: 'Expired', statusAvailable: 'Readable', statusMissing: 'Missing', statusUnavailable: 'Unavailable',
   },
 }
 export type AccountMessage = keyof typeof accountMessages['zh-CN']
+/** 其余七种站点语言只翻译用户可见词条；管理后台专用词条缺失时逐键回退英文。 */
+const extraMessages: Record<string, Partial<Record<AccountMessage, string>>> = accountLocales
 export function accountTranslator(language = 'en') {
-  return (key: AccountMessage) => accountMessages[language.startsWith('zh') ? 'zh-CN' : 'en-US'][key]
+  const base = accountMessages[language.startsWith('zh') ? 'zh-CN' : 'en-US'], extra = extraMessages[language] || {}
+  return (key: AccountMessage) => extra[key] || base[key]
 }

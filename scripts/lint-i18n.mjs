@@ -92,6 +92,23 @@ for (const { appLocale } of siteLocales.slice(2)) {
   for (const key of Object.keys(table)) if (!en.has(key)) problems.push(`${appLocale} 存在未知词条：${key}`)
 }
 
+// 账户页面额外七种语言：各语言键集合一致、均为已知英文词条，占位符对齐；管理后台专用词条允许回退英文。
+const accountSource = fs.readFileSync(path.join(ROOT, 'src/i18n/account.ts'), 'utf8')
+const accountBlock = accountSource.slice(accountSource.indexOf("'en-US': {"), accountSource.indexOf('\n  },', accountSource.indexOf("'en-US': {")))
+const accountEn = new Map([...accountBlock.matchAll(/(?:^|[\s,{])(\w+): '((?:[^'\\]|\\.)*)'/g)].map(m => [m[1], m[2]]))
+const accountExtra = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/i18n/account-locales.json'), 'utf8'))
+const accountKeys = new Set(Object.values(accountExtra).flatMap(table => Object.keys(table)))
+for (const { appLocale } of siteLocales.slice(2)) {
+  const table = accountExtra[appLocale]
+  if (!table) { problems.push(`account-locales.json 缺少语言：${appLocale}`); continue }
+  for (const key of accountKeys) {
+    if (!table[key]) problems.push(`account-locales.json ${appLocale} 缺少词条：${key}`)
+    else if (!accountEn.has(key)) problems.push(`account-locales.json ${appLocale} 存在未知词条：${key}`)
+    else if (JSON.stringify([...accountEn.get(key).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort()) !== JSON.stringify([...table[key].matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort())) problems.push(`account-locales.json ${appLocale} ${key} 占位符不一致`)
+  }
+}
+for (const locale of Object.keys(accountExtra)) if (!siteLocales.slice(2).some(item => item.appLocale === locale)) problems.push(`account-locales.json 存在未知语言：${locale}`)
+
 // ===== 1. 两份词条键完全一致 =====
 for (const key of zh.keys()) {
   if (!en.has(key)) problems.push(`en-US 缺少词条：${key}（该处英文界面会回退成中文）`)

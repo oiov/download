@@ -206,3 +206,10 @@
 @media(max-width:380px){.header{padding-inline:4%}.header-actions{gap:8px}.header .brand{font-size:18px;gap:6px}.header .brand-icon{width:24px;height:24px}.header .nav-download{padding-inline:8px;font-size:11px}.account-link{font-size:11px}}
 .account-link{display:inline-flex;align-items:center;min-height:44px;font-weight:600}
 @media(max-width:380px){.header .brand{font-size:0;gap:0}.header .brand-icon{width:28px;height:28px}}
+
+/* 账户入口归入右侧操作区：语言 → 登录 → 主按钮，登录作为与语言同高的次级按钮。 */
+.header .account-link{height:42px;min-height:42px;padding:0 15px;border:1px solid var(--line);border-radius:6px;font-size:13px;font-weight:600;transition:background .2s,border-color .2s}
+.header .account-link:hover{background:color-mix(in srgb,var(--ink) 5%,transparent);border-color:color-mix(in srgb,var(--ink) 25%,transparent)}
+.header .account-link:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+@media(max-width:760px){.header .account-link{height:38px;min-height:38px;padding:0 11px;font-size:12px}}
+@media(max-width:420px){.header .account-link{padding:0 9px}}

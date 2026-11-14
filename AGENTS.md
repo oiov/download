@@ -481,7 +481,7 @@ CHANGELOG 用 `## [Unreleased]` 段落累积改动。发布时再一次性改成
 - STORAGE_DRIVER=local|r2 选择存储；R2_ENDPOINT、R2_BUCKET、R2_ACCESS_KEY_ID、R2_SECRET_ACCESS_KEY 仅服务端读取。R2 仍需本地工作目录与持久化业务数据库。详见 docs/server-deployment.md。
 - 服务端负责全局队列和匿名会话隔离，不能公开桌面管理 IPC；仅接受服务端解析出的格式。成品经 /api/files/:id 授权交付。
 
-- 在线页默认英文 /app/，中文 /zh/app/，其余语言与 shared/site-locales.json 一致；旧 /zh-cn/ 永久跳转到 /zh/。公开说明与表单共用导航，HTML 可索引，私有 /api/ 保持 noindex。浏览器额外七语词条位于 src/i18n/web-locales.json，新增键须同步并通过 lint:i18n。
+- 在线页默认英文 /app/，中文 /zh/app/，其余语言与 shared/site-locales.json 一致；旧 /zh-cn/ 永久跳转到 /zh/。公开说明与表单共用导航，HTML 可索引，私有 /api/ 保持 noindex。浏览器额外七语词条位于 src/i18n/web-locales.json，账户页面七语词条位于 src/i18n/account-locales.json（管理后台专用词条回退英文），新增键须同步并通过 lint:i18n。
 
 - Web 队列以真实下载调用收尾为释放槽位和删除目录的依据，不能只看 paused/error 状态。停止服务必须等待下载、上传及正在解析的请求。
 - 容器使用清单生成器提供的 `YtDlpTag` 与 `YtDlpZipappSHA256`，下载校验后才能执行；保留非 root、发行版 ffmpeg 和 local/R2 存储，不引入上游品牌或架构迁移。

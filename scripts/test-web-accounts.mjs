@@ -69,7 +69,7 @@ try {
   assert.ok(ready, output)
   assert.deepEqual(await (await request('/api/account/session')).json(), { authenticated: false, loginEnabled: true })
   assert.deepEqual(await (await request('/api/account/session', cookies.member)).json(), { authenticated: true, loginEnabled: true }, '公开导航只读取登录布尔值，不泄露账户资料')
-  for (const route of ['/dashboard', '/account']) {
+  for (const route of ['/dashboard', '/account', '/dashboard/tasks', '/dashboard/keys', '/dashboard/account']) {
     const response = await request(route)
     assert.equal(response.status, 303); assert.equal(response.headers.get('location'), '/?login=1', '未登录不能打开控制面板')
   }
@@ -78,6 +78,15 @@ try {
   const memberHtml = await memberDashboard.text()
   assert.match(memberHtml, /class="layout"/); assert.match(memberHtml, /class="rail"/)
   assert.ok(!/href="\/admin(?:["/])/.test(memberHtml), '普通用户的控制面板不渲染任何管理入口')
+  for (const route of ['/dashboard/tasks', '/dashboard/keys', '/dashboard/account']) {
+    const sub = await request(route + '?lang=zh', cookies.member)
+    assert.equal(sub.status, 200, route); const subHtml = await sub.text()
+    assert.match(subHtml, new RegExp('href="' + route + '\\?lang=zh" aria-current="page"'), '控制面板子页在侧栏高亮自身：' + route)
+    assert.ok(!/href="\/admin(?:["/])/.test(subHtml), '普通用户的子页同样不渲染管理入口')
+  }
+  const japanese = await (await request('/dashboard/keys?lang=ja', cookies.member)).text()
+  assert.match(japanese, /<html lang="ja">/); assert.match(japanese, /<h1>API キー<\/h1>/, '站点九语言都能打开对应语言的控制面板')
+  assert.match(japanese, /href="\/dashboard\/tasks\?lang=ja"/, '侧栏链接保持当前语言'); assert.match(japanese, /href="\/dashboard\/keys\?lang=pt-br" lang="pt-BR"/, '语言菜单列出全部站点语言并停留在当前页')
   const adminDashboard = await request('/dashboard?lang=zh', cookies.admin)
   assert.equal(adminDashboard.status, 200)
   const adminHtml = await adminDashboard.text()
@@ -149,7 +158,7 @@ try {
   const usage = await (await api('/usage')).json(); assert.equal(usage.usage.downloads, 2); assert.equal(usage.usage.generatedBytes, 24); assert.equal(usage.usage.deliveredBytes, 18)
   const newKey = await form('/account/keys', cookies.member, { label: 'fixture-key', days: '1', scopes: 'downloads:read' }); assert.equal(newKey.status, 201); assert.match(await newKey.text(), /kv_[a-f0-9]{64}/)
   assert.equal((await form('/account/keys', cookies.other, { label: 'denied', days: '1', scopes: 'downloads:read' })).status, 403)
-  assert.equal((await form('/account/keys/revoke', cookies.member, { id: 'all' })).status, 303)
+  const revoked = await form('/account/keys/revoke', cookies.member, { id: 'all' }); assert.equal(revoked.status, 303); assert.equal(revoked.headers.get('location'), '/dashboard/keys?lang=en', '撤销后回到密钥页')
   assert.equal((await api('/usage')).status, 401, '撤销后旧 Key 立即失效')
   opened = new StateStore(config.dataDir)
   assert.equal(Number(opened.db.prepare('SELECT COUNT(*) n FROM quota WHERE owner_hash=? AND action=?').get(hash(owners.member), 'download').n), 1, '幂等重放只扣一次新任务额度')
@@ -182,6 +191,9 @@ async function loginFlowChecks(sources = {}) {
   const guest = response()
   await handler.handle({ method: 'GET', headers: {} }, guest, new URL('/dashboard?lang=zh', origin))
   assert.equal(guest.status, 303); assert.equal(guest.headers.Location, '/zh/?login=1')
+  const guestJa = response()
+  await handler.handle({ method: 'GET', headers: {} }, guestJa, new URL('/dashboard?lang=ja', origin))
+  assert.equal(guestJa.headers.Location, '/ja/?login=1', '未登录时回到同语言首页登录')
   const login = response()
   await handler.handle({ method: 'POST', headers: { origin } }, login, new URL('/api/account/login?lang=zh', origin))
   assert.equal(login.status, 200); assert.equal(parameters.callbackURL, '/dashboard?lang=zh', 'Google 登录成功必须返回受保护面板')

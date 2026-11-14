@@ -32,8 +32,9 @@ export function loader(mocks = {}, globals = {}, sources = {}) {
     vm.runInNewContext(code, {
       module, exports: module.exports, console, process, Buffer, fetch, setTimeout, clearTimeout, AbortController,
       require: name => Object.hasOwn(mocks, name) ? mocks[name]
-        : name.startsWith('.') ? load(resolveRelative(absolute, name))
-          : require(name),
+        : name.startsWith('.') && name.endsWith('.json') ? JSON.parse(fs.readFileSync(path.resolve(path.dirname(absolute), name), 'utf8'))
+          : name.startsWith('.') ? load(resolveRelative(absolute, name))
+            : require(name),
       ...globals,
     }, { filename: absolute })
     return module.exports
