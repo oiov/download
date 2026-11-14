@@ -62,7 +62,7 @@ type Settings struct {
 	AutoDownloadUpdate bool              `json:"autoDownloadUpdate"`
 	DepMirror          string            `json:"depMirror"`
 	UpdateSource       string            `json:"updateSource"`
-	Language           string            `json:"language"` // auto / zh-CN / en-US
+	Language           string            `json:"language"` // auto 或 knownLanguages 中的界面语言
 	// BypassProxy 让**解析与下载**不走上面那个代理。
 	//
 	// 为什么要它：开着 TUN/透明代理的机器上，再给 yt-dlp 传 `--proxy`
@@ -149,7 +149,7 @@ func Normalize(raw Settings) Settings {
 		out.DepMirror = def.DepMirror
 	}
 
-	if out.Language != "auto" && out.Language != "zh-CN" && out.Language != "en-US" {
+	if !knownLanguages[out.Language] {
 		out.Language = def.Language
 	}
 
@@ -210,6 +210,12 @@ var depMirrors = map[string]bool{
 }
 
 func knownDepMirror(v string) bool { return depMirrors[v] }
+
+// knownLanguages 与前端 `src/lib/locale-codes.ts` 的 LOCALES 一致，另加 auto（跟随系统）。
+var knownLanguages = map[string]bool{
+	"auto": true, "zh-CN": true, "en-US": true, "es": true, "pt-BR": true,
+	"de": true, "fr": true, "ja": true, "ko": true, "ru": true,
+}
 
 // Store 负责读写设置文件。
 type Store struct {

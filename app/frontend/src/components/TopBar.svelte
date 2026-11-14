@@ -3,7 +3,7 @@
   import logo from '../assets/logo.png'
   import { app } from '../lib/store.svelte'
   import type { Tab } from '../lib/constants'
-  import { t, getLocale } from '../lib/i18n.svelte'
+  import { t, getLocale, LOCALES, LOCALE_NAMES, LOCALE_SHORT, isLocale } from '../lib/i18n.svelte'
 
   const tabs: { id: Tab; key: string; icon: string }[] = [
     { id: 'download', key: 'nav.download', icon: 'download' },
@@ -12,6 +12,10 @@
     { id: 'about', key: 'nav.about', icon: 'info' },
   ]
 
+  function onLocaleChange(event: Event): void {
+    const value = (event.currentTarget as HTMLSelectElement).value
+    if (isLocale(value)) app.setLanguage(value)
+  }
 </script>
 
 <!--
@@ -55,18 +59,17 @@
       </button>
     {/if}
 
-    <div class="seg" role="group" aria-label={t('top.language')}>
-      <button
-        class:is-active={getLocale() === 'zh-CN'}
-        aria-pressed={getLocale() === 'zh-CN'}
-        onclick={() => app.setLanguage('zh-CN')}
-      >中</button>
-      <button
-        class:is-active={getLocale() === 'en-US'}
-        aria-pressed={getLocale() === 'en-US'}
-        onclick={() => app.setLanguage('en-US')}
-      >EN</button>
-    </div>
+    <!-- 原生 select 叠在按钮上：键盘、读屏与系统菜单都直接可用 -->
+    <label class="lang-picker btn btn-ghost btn-sm" title={t('top.language')}>
+      <Icon name="translate" size={15} />
+      <span class="lang-short">{LOCALE_SHORT[getLocale()]}</span>
+      <Icon name="expand_more" size={14} />
+      <select value={getLocale()} onchange={onLocaleChange} aria-label={t('top.language')}>
+        {#each LOCALES as locale (locale)}
+          <option value={locale}>{LOCALE_NAMES[locale]}</option>
+        {/each}
+      </select>
+    </label>
 
   </div>
 </header>
@@ -116,6 +119,33 @@
   }
   .topbar-right {
     justify-self: end;
+  }
+
+  .lang-picker {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .lang-picker:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .lang-short {
+    min-width: 1.6em;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .lang-picker select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 14px;
   }
 
   .nav-item {

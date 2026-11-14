@@ -1,18 +1,53 @@
 /**
- * 界面词表（中英双语）。
+ * 界面词表（九种语言）。
  *
- * 两层结构：`messages[locale][key]`。缺失的 key 依次回退到：
- * 当前语言 → 中文 → key 本身（见文件末尾的 `t()`）。
+ * 中文与英文是源词表，直接写在本文件里；其余七种语言放在 `locales/*.json`，
+ * 以英文为基准翻译。缺失的 key 依次回退到：当前语言 → 英文 → 中文 → key 本身
+ * （见文件末尾的 `t()`）。
  *
  * ## 加词条的两条规矩
  *
- * 1. **中英必须成对**。只加中文时英文界面会显示中文；只加英文时中文界面
- *    会退回英文。两种都很难在开发时发现（要手动切语言才看得到）。
+ * 1. **九种语言必须齐全**。漏掉的语言会悄悄回退成英文，要手动切语言才看得到；
+ *    `i18n.test.ts` 会校验每种语言的 key 集合与占位符都与英文一致。
  * 2. **不要留「演示」「模拟」「demo」这类词**。词条会被真的渲染到产品界面上，
  *    而开发期留下的占位文案一旦漏删，用户看到的就是「（演示）」。
  */
-export type Locale = 'zh-CN' | 'en-US'
-export const LOCALES: Locale[] = ['zh-CN', 'en-US']
+import es from './locales/es.json'
+import ptBR from './locales/pt-BR.json'
+import de from './locales/de.json'
+import fr from './locales/fr.json'
+import ja from './locales/ja.json'
+import ko from './locales/ko.json'
+import ru from './locales/ru.json'
+import { LOCALES, isLocale, type Locale } from './locale-codes'
+
+export { LOCALES, isLocale, type Locale }
+
+/** 语言名用各自语言书写，不随界面语言翻译 */
+export const LOCALE_NAMES: Record<Locale, string> = {
+  'zh-CN': '中文',
+  'en-US': 'English',
+  es: 'Español',
+  'pt-BR': 'Português (Brasil)',
+  de: 'Deutsch',
+  fr: 'Français',
+  ja: '日本語',
+  ko: '한국어',
+  ru: 'Русский',
+}
+
+/** 顶栏语言按钮上的短标签 */
+export const LOCALE_SHORT: Record<Locale, string> = {
+  'zh-CN': '中',
+  'en-US': 'EN',
+  es: 'ES',
+  'pt-BR': 'PT',
+  de: 'DE',
+  fr: 'FR',
+  ja: '日',
+  ko: '한',
+  ru: 'RU',
+}
 
 const messages: Record<Locale, Record<string, string>> = {
   'zh-CN': {
@@ -70,7 +105,6 @@ const messages: Record<Locale, Record<string, string>> = {
     'error.downloadFailed': '下载失败',
     'error.openFolderFailed': '无法打开文件夹',
     'error.saveFailed': '保存设置失败',
-    'error.sampleMessage': '该视频需要登录才能访问',
     'error.title': '这个链接没有解析成功',
     'error.hint': '检查链接是否完整、视频是否公开；需要登录的视频请在设置中配置 Cookie。',
     // platform-blocked 专用：抖音/快手要求请求签名或人机验证，配 Cookie 也没用，
@@ -286,12 +320,6 @@ const messages: Record<Locale, Record<string, string>> = {
     'about.showAllNotes': '展开其余 {count} 条',
     'about.collapseNotes': '收起',
     'about.changelog': '更新日志',
-    'about.release140Note1': '解析元数据从 11.1 秒降到 2.1 秒，换用启动更快的 yt-dlp zipapp。',
-    'about.release140Note2': '依赖探测改为并行，从 12 秒降到 0.5 秒。',
-    'about.release140Note3': '修复 bilibili 同一清晰度显示成两条的问题。',
-    'about.release134Note1': '新增 aria2 分块加速，五个平台都可一键下载。',
-    'about.release134Note2': '暂停会终止整棵进程树，下载不会在后台继续跑。',
-    'about.release134Note3': '更新源增加 jsDelivr / gh-proxy 等降级路径。',
     'about.tech': '技术栈',
     'about.update': '检查更新',
     'about.upToDate': '已是最新版本',
@@ -315,9 +343,6 @@ const messages: Record<Locale, Record<string, string>> = {
     'update.downloadedReady': '更新已下载，点「重启并安装」生效',
     'update.downloadFailed': '更新下载失败',
     'update.error': '更新检查失败，请检查网络后重试。',
-    'update.note1': '解析链路增加 bilibili Cookie 失效检测，失效时给出可操作的提示。',
-    'update.note2': '下载队列支持拖动排序；暂停任务不再占用并发槽位。',
-    'update.note3': '修复 Linux 透明窗口下状态栏高度抖动的问题。',
 
     'depsPrompt.title': '需要下载运行依赖',
     'depsPrompt.body': '当前缺少：{tools}。',
@@ -412,7 +437,6 @@ const messages: Record<Locale, Record<string, string>> = {
     'error.downloadFailed': 'Download failed',
     'error.openFolderFailed': 'Could not open the folder',
     'error.saveFailed': 'Could not save settings',
-    'error.sampleMessage': 'This video requires sign-in',
     'error.title': 'That link did not parse',
     'error.hint': 'Check that the link is complete and the video is public. For login-only videos, configure cookies in Settings.',
     'error.hintBlocked': 'This site requires request signing or a captcha, which cookies cannot fix. Open the link in a browser and download it manually.',
@@ -626,12 +650,6 @@ const messages: Record<Locale, Record<string, string>> = {
     'about.showAllNotes': 'Show {count} more',
     'about.collapseNotes': 'Collapse',
     'about.changelog': 'Changelog',
-    'about.release140Note1': 'Parse metadata dropped from 11.1s to 2.1s with the faster yt-dlp zipapp.',
-    'about.release140Note2': 'Dependency probing is parallel now: 12s down to 0.5s.',
-    'about.release140Note3': 'Fixed bilibili showing two entries for the same quality.',
-    'about.release134Note1': 'Added aria2 segmented acceleration with one-click download on all five platforms.',
-    'about.release134Note2': 'Pause now kills the whole process tree, so downloads really stop.',
-    'about.release134Note3': 'Added jsDelivr / gh-proxy fallback routes for update sources.',
     'about.tech': 'Built with',
     'about.update': 'Check for updates',
     'about.upToDate': 'You are up to date',
@@ -655,9 +673,6 @@ const messages: Record<Locale, Record<string, string>> = {
     'update.downloadedReady': 'Update downloaded — click "Restart and install" to apply',
     'update.downloadFailed': 'Could not download the update',
     'update.error': 'Update check failed. Check your network and try again.',
-    'update.note1': 'bilibili cookie expiry is now detected and explained in the parse error.',
-    'update.note2': 'Queue reordering; paused tasks no longer occupy a concurrency slot.',
-    'update.note3': 'Fixed status bar jitter on transparent Linux windows.',
 
     'depsPrompt.title': 'Runtime dependencies required',
     'depsPrompt.body': 'Missing: {tools}.',
@@ -697,6 +712,13 @@ const messages: Record<Locale, Record<string, string>> = {
     'toast.depInstallFailed': 'Could not install the dependency',
     'toast.upToDate': 'You are on the latest version',
   },
+  es,
+  'pt-BR': ptBR,
+  de,
+  fr,
+  ja,
+  ko,
+  ru,
 }
 
 let currentLocale = $state<Locale>('zh-CN')
@@ -721,15 +743,24 @@ function applyParams(template: string, params?: Record<string, string | number |
 }
 
 export function t(key: string, params?: Record<string, string | number | undefined>): string {
-  const template = messages[currentLocale][key] ?? messages['zh-CN'][key] ?? key
+  const template =
+    messages[currentLocale][key] ?? messages['en-US'][key] ?? messages['zh-CN'][key] ?? key
   return applyParams(template, params)
 }
 
+/** 把系统语言（如 `pt-PT`、`ja-JP`）映射到最接近的界面语言；不认识的统一用英文 */
+export function matchLocale(tag: string): Locale {
+  const lower = tag.toLowerCase()
+  if (lower.startsWith('zh')) return 'zh-CN'
+  const prefix = lower.split(/[-_]/)[0]
+  const hit = LOCALES.find((locale) => locale.toLowerCase().split('-')[0] === prefix)
+  return hit ?? 'en-US'
+}
+
 export function resolveLocale(setting: string | undefined): Locale {
-  if (setting === 'zh-CN' || setting === 'en-US') return setting
+  if (isLocale(setting)) return setting
   if (typeof navigator === 'undefined') return 'zh-CN'
-  const nav = (navigator.languages?.[0] || navigator.language || 'zh-CN').toLowerCase()
-  return nav.startsWith('zh') ? 'zh-CN' : 'en-US'
+  return matchLocale(navigator.languages?.[0] || navigator.language || 'zh-CN')
 }
 
 export function allMessages(): Record<Locale, Record<string, string>> {

@@ -11,7 +11,7 @@
   import { app } from '../lib/store.svelte'
   import type { SettingsSection } from '../lib/types'
   import type { DepItem } from '../lib/types'
-  import { t } from '../lib/i18n.svelte'
+  import { LOCALES, LOCALE_NAMES, t } from '../lib/i18n.svelte'
   import { APP_VERSION, BUILD_DATE } from '../lib/constants'
   import { SPEED_LIMIT_STOPS, type AppSettings as DemoSettings } from '../lib/settings'
 
@@ -33,11 +33,7 @@
 
 
   // 语言名用各自语言书写（中文叫「中文」、英文叫「English」），不翻译
-  const languageOptions = [
-    { value: 'auto', key: 'settings.languageAuto' },
-    { value: 'zh-CN', key: 'lang.zh' },
-    { value: 'en-US', key: 'lang.en' },
-  ] as const
+  const languageOptions = LOCALES.map((value) => ({ value, name: LOCALE_NAMES[value] }))
 
   const themeOptions = [
     { value: 'auto', key: 'settings.themeAuto' },
@@ -595,8 +591,9 @@
               onchange={onLanguageChange}
               aria-label={t('settings.language')}
             >
+              <option value="auto">{t('settings.languageAuto')}</option>
               {#each languageOptions as option (option.value)}
-                <option value={option.value}>{t(option.key)}</option>
+                <option value={option.value}>{option.name}</option>
               {/each}
             </select>
           </div>

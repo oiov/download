@@ -86,7 +86,7 @@ func TestNormalizeFallsBackOnInvalid(t *testing.T) {
 		CookieMode:       "whatever",
 		UpdateSource:     "github ",  // 尾部空格是最常见的「看起来对」的非法值
 		DepMirror:        "jsdelivr", // 依赖源的合法值是 direct/ghproxy/ghfast/gitee
-		Language:         "zh",       // 非法：必须是 auto/zh-CN/en-US
+		Language:         "zh",       // 非法：必须是 auto 或 knownLanguages 中的完整代码
 	}
 	out := Normalize(raw)
 
@@ -326,6 +326,15 @@ func TestLoadOldVersionFile(t *testing.T) {
 	}
 	if got.Acceleration.Enabled == nil || !*got.Acceleration.Enabled {
 		t.Error("缺失的 acceleration 应补齐为「开启」")
+	}
+}
+
+// 九种界面语言都必须原样保留：白名单漏一个，用户选了该语言后重启就会被重置成 auto
+func TestNormalizeKeepsSupportedLanguages(t *testing.T) {
+	for _, lang := range []string{"auto", "zh-CN", "en-US", "es", "pt-BR", "de", "fr", "ja", "ko", "ru"} {
+		if got := Normalize(Settings{Language: lang}).Language; got != lang {
+			t.Errorf("语言 %q 被改写成 %q", lang, got)
+		}
 	}
 }
 

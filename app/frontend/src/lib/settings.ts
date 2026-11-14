@@ -27,6 +27,7 @@
  * 别处不要手写字段名——两处各拼一次必然漂移。
  */
 import { CONNECTION_STOPS, nearestConnectionStop } from './constants'
+import { isLocale, type Locale } from './locale-codes'
 
 /** 更新源：桌面版只从 GitHub Releases 更新，`auto` 保留给旧设置 */
 export type UpdateSourceId = 'auto' | 'github'
@@ -40,7 +41,7 @@ export type ThemeSetting = 'auto' | 'light' | 'dark'
 /** 圆角风格 */
 export type RadiusSetting = 'default' | 'sharp' | 'round'
 /** 界面语言 */
-export type LanguageSetting = 'auto' | 'zh-CN' | 'en-US'
+export type LanguageSetting = 'auto' | Locale
 /** 画质偏好 */
 export type QualitySetting = 'best' | '1080p' | '720p' | '480p'
 
@@ -221,7 +222,7 @@ export function fromBackend(
     autoCheckUpdate: bool(raw.autoCheckUpdate, base.autoCheckUpdate),
     autoDownloadUpdate: bool(raw.autoDownloadUpdate, base.autoDownloadUpdate),
     depPaths: (raw.depPaths ?? {}) as AppSettings['depPaths'],
-    language: (['auto', 'zh-CN', 'en-US'] as const).includes(raw.language as LanguageSetting)
+    language: raw.language === 'auto' || isLocale(raw.language)
       ? (raw.language as LanguageSetting)
       : base.language,
   }

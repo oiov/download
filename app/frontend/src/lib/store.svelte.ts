@@ -407,10 +407,6 @@ class AppStore {
     void this.persistSettings({ language: setting })
   }
 
-  toggleLocale(): void {
-    this.setLanguage(getLocale() === 'zh-CN' ? 'en-US' : 'zh-CN')
-  }
-
   setTheme(setting: AppSettings['theme']): void {
     this.settings = { ...this.settings, theme: setting }
     this.applyTheme(setting)
